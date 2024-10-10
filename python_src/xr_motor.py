@@ -86,7 +86,7 @@ class RobotDirection(object):
 		gpio.digital_write(gpio.IN3, False)
 		gpio.digital_write(gpio.IN4, False)
 
-	def forward(self):
+	def back(self):
 		"""
 		设置机器人运动方向为前进
 		"""
@@ -95,7 +95,7 @@ class RobotDirection(object):
 		self.m1m2_forward()
 		self.m3m4_forward()
 
-	def back(self):
+	def forward(self):
 		"""
 		#设置机器人运动方向为后退
 		"""
