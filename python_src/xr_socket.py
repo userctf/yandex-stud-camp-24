@@ -35,6 +35,8 @@ car_light = Car_light()
 from xr_music import Beep
 beep = Beep()
 
+from xr_ultrasonic import Ultrasonic
+ultrasonic = Ultrasonic()
 
 class Socket:
 	def __init__(self):
@@ -321,7 +323,9 @@ class Socket:
 					"IR_M": gpio.digital_read(gpio.IR_M),
 
 					"IRF_R": gpio.digital_read(gpio.IRF_R),
-					"IRF_L": gpio.digital_read(gpio.IRF_L)
+					"IRF_L": gpio.digital_read(gpio.IRF_L),
+
+					"dist": ultrasonic.get_distance()
 				}
 				self.sendbuf(data.__str__().encode("utf-8"))
 				time.sleep(0.5)
