@@ -322,8 +322,8 @@ class Socket:
 					"IRF_R": gpio.digital_read(gpio.IRF_R),
 					"IRF_L": gpio.digital_read(gpio.IRF_L)
 				}
-				self.sendbuf(data.__str__())
-				sleep(0.5)
+				self.sendbuf(data.__str__().encode("utf-8"))
+				time.sleep(0.5)
 
 		elif buffer == [0xef, 0xef, 0xee]:
 			print("Heartbeat Packet!")
