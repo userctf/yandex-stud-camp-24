@@ -330,6 +330,15 @@ class Socket:
 				self.sendbuf(data.__str__().encode("utf-8"))
 				time.sleep(0.5)
 
+		elif buffer[0] == 0x43:
+			color_id = int(buffer[1])
+			assert(0 <= color_id <= 8)
+
+			count = int(buffer[2])
+			assert(count <= 8)
+
+			car_light.set_ledgroup(cfg.CAR_LIGHT, count, color_id)
+
 		elif buffer == [0xef, 0xef, 0xee]:
 			print("Heartbeat Packet!")
 
