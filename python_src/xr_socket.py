@@ -19,6 +19,7 @@ from builtins import range, str, eval, hex, int, object, type, abs, Exception, r
 import os
 import time
 import xr_config as cfg
+import xr_gpio as gpio
 
 from subprocess import call
 
