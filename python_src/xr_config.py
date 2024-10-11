@@ -1,12 +1,5 @@
 # coding:utf-8
 """
-树莓派WiFi无线视频小车机器人驱动源码
-作者：Sence
-版权所有：小R科技（深圳市小二极客科技有限公司www.xiao-r.com）；WIFI机器人网论坛 www.wifi-robots.com
-本代码可以自由修改，但禁止用作商业盈利目的！
-本代码已申请软件著作权保护，如有侵权一经发现立即起诉！
-"""
-"""
 @version: python3.7
 @Author  : xiaor
 @Explain :配置文件
@@ -26,7 +19,7 @@ CRUISING_SET = {'normal': 0, 'irfollow': 1, 'trackline': 2, 'avoiddrop': 3, 'avo
 		 'maze': 6, 'camera_normal': 7, 'camera_linepatrol': 8, 'facefollow':9, 'colorfollow':10, 'qrcode_detection':11}
 CAMERA_MOD_SET = {'camera_normal': 0, 'camera_linepatrol': 1, 'facefollow':2, 'colorfollow':3, 'qrcode_detection':4}
 
-ANGLE_MAX = 160  			# 舵机角度上限值，防止舵机卡死，可设置小于180的数值
+ANGLE_MAX = 170  			# 舵机角度上限值，防止舵机卡死，可设置小于180的数值
 ANGLE_MIN = 15  			# 舵机角度下限值，防止舵机卡死，可设置大于0的数值
 
 VOICE_MOD = 0
