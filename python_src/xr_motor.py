@@ -38,6 +38,7 @@ class RobotDirection(object):
 			gpio.ena_pwm(speed)
 		elif num == 2:  # 调节右侧
 			gpio.enb_pwm(speed)
+			print("HUY")
 
 	def motor_init(self):
 		"""
