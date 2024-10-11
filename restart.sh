@@ -1,8 +1,6 @@
 #!/bin/sh
 
-sudo killall python &&
-sudo killall node &&
-
+sudo killall python & sudo killall node
 
 sudo python /home/pi/work/python_src/xr_startmain.py &
 
