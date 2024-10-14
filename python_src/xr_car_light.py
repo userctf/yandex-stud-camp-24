@@ -75,6 +75,9 @@ class Car_light(object):
 		self.set_ledgroup(cfg.CAR_LIGHT, 8, cfg.COLOR['black'])
 		time.sleep(0.01)
 
+	def set_robot_color(self, color):
+		self.set_ledgroup(cfg.POWER_LIGHT, 8, color)
+
 	def left_turn_light(self):
 		"""
 		左转流水灯

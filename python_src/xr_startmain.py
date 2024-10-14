@@ -206,7 +206,7 @@ def status():
 					car_light.close_light()
 		if cfg.LOOPS > 100:  		# 定时器设定的是0.01秒进入一次，大于100表明自增了100次即1秒时间，一些不需要更新太快的数据显示函数可放这里
 			cfg.LOOPS = 0			# 清除LOOPS
-			power.show_vol()    	# 电量灯条电量显示
+			# power.show_vol()    	# ignore it
 			try:
 				oled.disp_cruising_mode()  	# oled显示模式
 			except:

@@ -332,12 +332,12 @@ class Socket:
 
 		elif buffer[0] == 0x43:
 			color_id = int(buffer[1])
-			assert(0 <= color_id <= 8)
-
-			count = int(buffer[2])
-			assert(count <= 8)
-
-			car_light.set_ledgroup(cfg.CAR_LIGHT, count, color_id)
+			if color_id == 0:
+				car_light.set_robot_color(cfg.COLOR['green'])
+			elif color_id == 1:
+				car_light.set_robot_color(cfg.COLOR['red'])
+			else:
+				car_light.set_robot_color(cfg.COLOR['velvet'])
 
 		elif buffer == [0xef, 0xef, 0xee]:
 			print("Heartbeat Packet!")
