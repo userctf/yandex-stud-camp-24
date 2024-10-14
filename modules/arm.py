@@ -13,7 +13,7 @@ BEEP_MESSAGE = bytearray([255, 65, 1, 1, 255])
 
 class Arm(BaseModule):
     def __init__(self, s: socket.socket):
-        super().__init__(s)
+        super().__init__(s.dup())
 
     def _send(self, message: bytearray, sleep_time=SLEEP_TIME):
         super()._send(message, sleep_time)
@@ -44,39 +44,39 @@ class Arm(BaseModule):
         return first, second
 
 
-def _make_message(self, servo: int, angle: int):
-    if servo not in (1, 2, 3, 4):
-        return BEEP_MESSAGE
-    if angle > 170 or angle < 15:
-        return BEEP_MESSAGE
-    message = BASE_MESSAGE.copy()
-    message[1] = servo
-    message[2] = angle
-    return message
+    def _make_message(self, servo: int, angle: int):
+        if servo not in (1, 2, 3, 4):
+            return BEEP_MESSAGE
+        if angle > 170 or angle < 15:
+            return BEEP_MESSAGE
+        message = BASE_MESSAGE.copy()
+        message[1] = servo
+        message[2] = angle
+        return message
 
 
-def close_hand(self, ball: bool = False):
-    if ball:
-        message = self._make_message(4, 82)
-    else:
-        message = self._make_message(4, 77)
-    self._send(message)
+    def close_hand(self, ball: bool = False):
+        if ball:
+            message = self._make_message(4, 82)
+        else:
+            message = self._make_message(4, 77)
+        self._send(message)
 
 
-def open_hand(self):
-    self._send(self._make_message(4, 53))
+    def open_hand(self):
+        self._send(self._make_message(4, 53))
 
 
-def rotate_hand_vertical(self):
-    self._send(self._make_message(3, 170))
+    def rotate_hand_vertical(self):
+        self._send(self._make_message(3, 170))
 
 
-def rotate_hand_horizontal(self):
-    self._send(self._make_message(3, 90))
+    def rotate_hand_horizontal(self):
+        self._send(self._make_message(3, 90))
 
 
-def set_arm(self, length: int, height: int):
-    first, second = self._calculate_angles(length, height)
-    print(f"{length, height}: Calculated angles are f{first} and {second}")
-    self._send(self._make_message(1, first))
-    self._send(self._make_message(2, second))
+    def set_arm(self, length: int, height: int):
+        first, second = self._calculate_angles(length, height)
+        print(f"{length, height}: Calculated angles are {first} and {second}")
+        self._send(self._make_message(1, first))
+        self._send(self._make_message(2, second))
