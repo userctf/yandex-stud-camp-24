@@ -5,7 +5,7 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 
 
-img = cv.imread('image1.jpg')
+img = cv.imread('image_robot.jpg')
 assert img is not None, "file could not be read, check with os.path.exists()"
 rows, cols, ch = img.shape
 
