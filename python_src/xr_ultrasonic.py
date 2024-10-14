@@ -61,9 +61,9 @@ class Ultrasonic(object):
 			distance = 0
 		
 		# exponential running average filter
-		k = 0.1 # коэффициент фильтрации (0.0-1.0)
+		k = 0.4 # коэффициент фильтрации (0.0-1.0)
 		# distance - текущее расстояние; cfg.DISTANCE - предыдущее расстояние
-		cfg.DISTANCE = cfg.DISTANCE + (distance - cfg.DISTANCE) * k
+		cfg.DISTANCE += (distance - cfg.DISTANCE) * k
 
 		return round(cfg.DISTANCE, 2)
 	
