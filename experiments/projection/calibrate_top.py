@@ -23,7 +23,7 @@ if __name__ == '__main__':
         os.mkdir(debug_dir)
     square_size = float(args.get('--square_size'))
 
-    pattern_size = (9, 6)
+    pattern_size = (7, 5)
     pattern_points = np.zeros((np.prod(pattern_size), 3), np.float32)
     pattern_points[:, :2] = np.indices(pattern_size).T.reshape(-1, 2)
     pattern_points *= square_size
@@ -56,6 +56,7 @@ if __name__ == '__main__':
 
     rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (w, h), None, None)
 
+    print(camera_matrix)
     print("\nRMS:", rms)
     print("camera matrix:\n", camera_matrix)
     print("distortion coefficients: ", dist_coefs.ravel())
