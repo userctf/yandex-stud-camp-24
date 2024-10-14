@@ -48,7 +48,7 @@ class Ultrasonic(object):
 			pass
 		t1 = time.time()  
 		while gpio.digital_read(gpio.ECHO): 
-			if time_count < 2000:  # todo: how much in secnods?
+			if time_count < 2000:
 				time_count = time_count + 1
 				time.sleep(0.000001)
 				pass
@@ -56,11 +56,17 @@ class Ultrasonic(object):
 				print("NO ECHO receive! Please check connection")
 				break
 		t2 = time.time() 
-		distance = (t2 - t1) * 340 / 2 * 100 
+		distance = (t2 - t1) * 340 / 2 * 100 # cm
 		if distance < 500: 
-			cfg.DISTANCE = round(distance, 2)
+			distance = round(distance, 2)
 		else:
-			cfg.DISTANCE = 0
+			distance = 0
+		
+		# exponential running average filter
+		k = 0.1 # коэффициент фильтрации (0.0-1.0)
+		# distance - текущее расстояние; cfg.DISTANCE - предыдущее расстояние
+		cfg.DISTANCE = cfg.DISTANCE + (distance - cfg.DISTANCE) * k
+
 		return cfg.DISTANCE
 
 	def avoidbyragar(self):
