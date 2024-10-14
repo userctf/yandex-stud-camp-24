@@ -12,29 +12,23 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print(f"Соединение с {host}:{port}")
 
 # Устанавливаем соединение
-s.connect((host, port))
-
-
 def send_command(command):
+    s.connect((host, port))
     try:
-        print(f"Отправка команды: {command}")
-        # Отправляем команду
         s.sendall(command)
-
-        while True:
-            data = s.recv(1024)
-            if not data:
-                break
-            print("recv: ", data)
-
-            time.sleep(0.1)
-
+        data = s.recv(1024)
+        s.close()
     except socket.error as e:
         print(f"Ошибка сокета: {e}")
+        s.close()
         return False
+    return data
 
 command = b"\xff\x42\x00\x00\xff"
-send_command(command)
+for i in range (100):
+    res = send_command(command)
+    if i % 5 == 0:
+        print(res)
 # Закрываем соединение
-s.close()
+
 print("Соединение закрыто")
