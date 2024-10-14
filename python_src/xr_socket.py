@@ -139,9 +139,9 @@ class Socket:
 		elif buffer[0] == 0x01:  # 控制舵机指令
 			cfg.SERVO_NUM = buffer[1]  # 获取舵机号
 			cfg.SERVO_ANGLE = buffer[2]  # 获取舵机角度
+			cfg.ANGLE[cfg.SERVO_NUM-1] = cfg.SERVO_ANGLE
+			servo.set(cfg.SERVO_NUM, cfg.SERVO_ANGLE)
 			# if abs(cfg.SERVO_ANGLE - cfg.SERVO_ANGLE_LAST) > 2:  # 限制舵机重复下发角度; it most likely has no purpose
-            cfg.ANGLE[cfg.SERVO_NUM-1] = cfg.SERVO_ANGLE
-            servo.set(cfg.SERVO_NUM, cfg.SERVO_ANGLE)
 
 		elif buffer[0] == 0x02:  # 调节电机速度
 			if buffer[1] == 0x01:  # 调节左侧电机速度
