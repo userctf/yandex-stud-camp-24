@@ -330,6 +330,15 @@ class Socket:
 				self.sendbuf(data.__str__().encode("utf-8"))
 				time.sleep(0.5)
 
+		elif buffer[0] == 0x43:
+			color_id = int(buffer[1])
+			if color_id == 0:
+				car_light.set_robot_color(cfg.COLOR['green'])
+			elif color_id == 1:
+				car_light.set_robot_color(cfg.COLOR['red'])
+			else:
+				car_light.set_robot_color(cfg.COLOR['velvet'])
+
 		elif buffer == [0xef, 0xef, 0xee]:
 			print("Heartbeat Packet!")
 
