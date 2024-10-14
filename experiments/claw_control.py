@@ -12,6 +12,12 @@ print(f"Соединение с {host}:{port}")
 # Устанавливаем соединение
 s.connect((host, port))
 
+def run_commands(commands: list[bytearray]):
+    for command in commands:
+        result = send_command(command)
+        if not result:
+            print("An error occurred")
+
 
 def send_command(command: bytearray) -> bool:
     try:
@@ -27,6 +33,12 @@ def send_command(command: bytearray) -> bool:
         print(f"Ошибка сокета: {e}")
         return False
 
+
+commands_forward_hand = [
+    bytearray([255, 1, 2, 170, 255]),
+    bytearray([255, 1, 1, 70, 255]),
+    bytearray([255, 1, 3, 85, 255]),
+]
 
 # Первая команда
 commands_prepare_grab = [
@@ -45,25 +57,17 @@ commands_make_grab = [
     bytearray([255, 1, 1, 155, 255]),
     bytearray([255, 1, 2, 29, 255]),
 ]
-commands_default = [
+commands_shake = [
     bytearray([255, 1, 2, 103, 255]),
     bytearray([255, 1, 1, 123, 255]),
     bytearray([255, 1, 2, 123, 255]),
     bytearray([255, 1, 1, 143, 255]),
 ]
 
-for command in commands_prepare_grab:
-    result = send_command(command)
-    if not result:
-        print("An error occurred")
-
-for command in commands_make_grab:
-    result = send_command(command)
-    if not result:
-        print("An error occurred")
-
-for command in commands_default:
-    result = send_command(command)
+# run_commands(commands_forward_hand)
+run_commands(commands_prepare_grab)
+# run_commands(commands_make_grab)
+# run_commands(commands_shake)
 
 # Закрываем соединение
 s.close()
