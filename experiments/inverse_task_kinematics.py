@@ -2,7 +2,6 @@ import math
 import socket
 import time
 
-
 def inverse_task(x: int, y: int) -> tuple[int, int]:
     # в миллиметрах
     l1 = 90
@@ -13,7 +12,6 @@ def inverse_task(x: int, y: int) -> tuple[int, int]:
     betta = int(170 - Q2 * 180 / math.pi)
     print(alpha, betta)
     return alpha, betta
-
 
 host = "192.168.2.106"
 
@@ -49,14 +47,35 @@ def send_command(command: bytearray) -> bool:
         return False
 
 
-alpha, betta = inverse_task(100, 0)
+alpha, betta = inverse_task(200, 0)
+
+
+
+commands_prepare_grab = [
+    bytearray([255, 1, 4, 60, 255]),
+    bytearray([255, 1, 3, 85, 255]),
+    bytearray([255, 1, 1, 143, 255]),
+    bytearray([255, 1, 2, 41, 255]),
+    bytearray([255, 1, 1, 137, 255]),
+]
 
 commands_forward_hand = [
     bytearray([255, 1, 2, betta, 255]),
     bytearray([255, 1, 1, alpha, 255]),
 ]
 
+commands_make_grab = [
+    bytearray([255, 1, 4, 77, 255]),
+    bytearray([255, 1, 2, 83, 255]),
+    bytearray([255, 1, 1, 143, 255]),
+    bytearray([255, 1, 3, 170, 255]),
+    bytearray([255, 1, 1, 155, 255]),
+    bytearray([255, 1, 2, 29, 255]),
+]
+
+run_commands(commands_prepare_grab)
 run_commands(commands_forward_hand)
+run_commands(commands_make_grab)
 
 # Закрываем соединение
 s.close()
