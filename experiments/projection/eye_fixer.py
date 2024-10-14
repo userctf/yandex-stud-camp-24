@@ -8,10 +8,10 @@ import os
 img_names_undistort = [img for img in glob.glob("top_images/*.png")]
 new_path = "/Users/rattysed/PycharmProjects/yandex-stud-camp-24/experiments/projection/out/"
 
-camera_matrix = np.array([[798.35968226, 0., 952.86158649],
-                          [0., 799.1283211, 584.42288843],
-                          [0., 0., 1.]])
-dist_coefs = np.array([-0.23619838, 0.18406916, 0.00527998, -0.00473346, -0.09061932])
+camera_matrix = np.array([[713.055456, 0., 936.55387964],
+                          [0., 714.19333345, 594.33880656],
+                          [0., 0., 1., ]])
+dist_coefs = np.array([-0.15776208, 0.05862795, 0.00185709, -0.00275354, -0.01768117])
 
 i = 0
 
@@ -29,7 +29,7 @@ while i < len(img_names_undistort):
 
     # crop and save the image
     x, y, w, h = roi
-    dst = dst[y:y + h, x:x + w]
+    dst = dst[y - 20:y + h, x:x + w]
 
     name = img_names_undistort[i].split("/")
     name = name[-1].split(".")
