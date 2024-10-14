@@ -2,16 +2,19 @@ import math
 import socket
 import time
 
+
 def inverse_task(x: int, y: int) -> tuple[int, int]:
     # в миллиметрах
-    l1 = 90
-    l2 = 165
+    l1 = 95
+    l2 = 160
+    y -= 50
     Q1 = math.atan(y / x) + math.acos((l1**2 + x**2 + y**2 - l2**2) / (2 * l1 * (x**2 + y**2)**0.5))
     Q2 = math.pi - math.acos((l1**2 + l2**2 - x**2 - y**2) / (2 * l1 * l2))
-    alpha = int(70 + Q1 * 180 / math.pi)
-    betta = int(170 - Q2 * 180 / math.pi)
+    alpha = int(81 + Q1 * 180 / math.pi)
+    betta = int(180 - Q2 * 180 / math.pi)
     print(alpha, betta)
     return alpha, betta
+
 
 host = "192.168.2.106"
 
@@ -47,7 +50,7 @@ def send_command(command: bytearray) -> bool:
         return False
 
 
-alpha, betta = inverse_task(200, 0)
+alpha, betta = inverse_task(210, 100)
 
 
 
@@ -73,9 +76,9 @@ commands_make_grab = [
     bytearray([255, 1, 2, 29, 255]),
 ]
 
-run_commands(commands_prepare_grab)
+# run_commands(commands_prepare_grab)
 run_commands(commands_forward_hand)
-run_commands(commands_make_grab)
+# run_commands(commands_make_grab)
 
 # Закрываем соединение
 s.close()
