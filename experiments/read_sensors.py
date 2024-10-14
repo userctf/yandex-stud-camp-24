@@ -33,7 +33,7 @@ def send_command(command):
         print(f"Ошибка сокета: {e}")
         return False
 
-command = b"\xff\x42\x00\x00\xff"
+command = b"\xff\x01\x08\x70\xff"
 send_command(command)
 # Закрываем соединение
 s.close()
