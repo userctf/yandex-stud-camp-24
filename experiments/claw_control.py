@@ -64,8 +64,13 @@ commands_shake = [
     bytearray([255, 1, 1, 143, 255]),
 ]
 
+commands_fixim = [
+    bytearray([255, 1, 4, 50, 255]),
+]
+
+run_commands(commands_fixim)
 # run_commands(commands_forward_hand)
-run_commands(commands_prepare_grab)
+# run_commands(commands_prepare_grab)
 # run_commands(commands_make_grab)
 # run_commands(commands_shake)
 
