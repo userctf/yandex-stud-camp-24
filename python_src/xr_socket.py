@@ -19,6 +19,7 @@ from builtins import range, str, eval, hex, int, object, type, abs, Exception, r
 import os
 import time
 import xr_config as cfg
+import xr_gpio as gpio
 
 from subprocess import call
 
@@ -34,6 +35,8 @@ car_light = Car_light()
 from xr_music import Beep
 beep = Beep()
 
+from xr_ultrasonic import Ultrasonic
+ultrasonic = Ultrasonic()
 
 class Socket:
 	def __init__(self):
@@ -42,12 +45,10 @@ class Socket:
 		self.client = None
 
 	def sendbuf(self, buf):
-		time.sleep(0.2)
 		# print('TCP_CLIENT:%s++++++++BT_CLIENT:%s' % (cfg.TCP_CLIENT, cfg.BT_CLIENT))
 		if cfg.TCP_CLIENT != False:
 				try:
 					cfg.TCP_CLIENT.send(buf)
-					time.sleep(0.005)
 					print('tcp send ok!!!')
 				except Exception as e:  # 发送出错
 					print('tcp send error:', e)  # 打印出错信息
@@ -55,7 +56,6 @@ class Socket:
 		if cfg.BT_CLIENT != False:
 				try:
 					cfg.BT_CLIENT.send(buf)
-					time.sleep(0.005)
 					print('bluetooth send ok!!!')
 				except Exception as e:  # 发送出错
 					print('bluetooth send error:', e)  # 打印出错信息
@@ -314,6 +314,21 @@ class Socket:
 			elif buffer[1] == 0x03:  # 接收的是高音
 				beet3 = buffer[2]
 				beep.tone(beep.tone_all[cfg.TUNE][beet3 + 7], 0.5)
+
+		elif buffer[0] == 0x42:
+			for i in range(10):
+				data = {
+					"IR_L": gpio.digital_read(gpio.IR_L),
+					"IR_R": gpio.digital_read(gpio.IR_R),
+					"IR_M": gpio.digital_read(gpio.IR_M),
+
+					"IRF_R": gpio.digital_read(gpio.IRF_R),
+					"IRF_L": gpio.digital_read(gpio.IRF_L),
+
+					"dist": ultrasonic.get_distance()
+				}
+				self.sendbuf(data.__str__().encode("utf-8"))
+				time.sleep(0.5)
 
 		elif buffer == [0xef, 0xef, 0xee]:
 			print("Heartbeat Packet!")

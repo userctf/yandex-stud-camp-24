@@ -26,9 +26,6 @@ go = RobotDirection()
 from xr_servo import Servo
 servo = Servo()
 
-from xr_socket import Socket
-socket = Socket()
-
 
 class Ultrasonic(object):
 	def __init__(self):
@@ -44,33 +41,27 @@ class Ultrasonic(object):
 		获取超声波距离函数,有返回值distance，单位cm
 		"""
 		time_count = 0
-		time.sleep(0.01)
-		gpio.digital_write(gpio.TRIG, True)  # 拉高超声波Trig引脚
-		time.sleep(0.000015)  # 发送10um以上高电平方波
-		gpio.digital_write(gpio.TRIG, False)  # 拉低
-		while not gpio.digital_read(gpio.ECHO):  # 等待Echo引脚由低电平变成高电平
+		gpio.digital_write(gpio.TRIG, True)  
+		time.sleep(0.000015)  
+		gpio.digital_write(gpio.TRIG, False)  
+		while not gpio.digital_read(gpio.ECHO): 
 			pass
-		t1 = time.time()  # 记录Echo引脚高电平开始时间点
-		while gpio.digital_read(gpio.ECHO):  # 等待Echo引脚由低电平变成低电平
-			if time_count < 2000:  # 超时检测，防止死循环
+		t1 = time.time()  
+		while gpio.digital_read(gpio.ECHO): 
+			if time_count < 2000:  # todo: how much in secnods?
 				time_count = time_count + 1
 				time.sleep(0.000001)
 				pass
 			else:
 				print("NO ECHO receive! Please check connection")
 				break
-		t2 = time.time()  # 记录Echo引脚高电平结束时间点
-		distance = (t2 - t1) * 340 / 2 * 100  # Echo引脚高电平持续时间就是超声波由发射到返回的时间，即用时间x声波速度/2等于单程即超声波距物体距离值
-		# t2-t1时间单位s,声波速度340m/s,x100将距离值单位m转换成cm
-		# print("distance is %d" % distance)  # 打印距离值
-		if distance < 500:  # 正常检测距离值
-			# print("distance is %d"%distance)
+		t2 = time.time() 
+		distance = (t2 - t1) * 340 / 2 * 100 
+		if distance < 500: 
 			cfg.DISTANCE = round(distance, 2)
-			return cfg.DISTANCE
 		else:
-			# print("distance is 0")  # 如果距离值大于5m,超出检测范围
 			cfg.DISTANCE = 0
-			return 0
+		return cfg.DISTANCE
 
 	def avoidbyragar(self):
 		"""
@@ -85,21 +76,6 @@ class Ultrasonic(object):
 			if cfg.AVOID_CHANGER == 1:
 				go.stop()
 				cfg.AVOID_CHANGER = 0
-
-	def send_distance(self):
-		"""
-		发送超声波数据至上位机
-		"""
-		dis_send = int(self.get_distance())
-		# print(dis_send)
-		if 1 < dis_send < 255:
-			buf = bytes([0xff, 0x31, 0x02, dis_send, 0xff]) 	# 将超声波距离值上传到上位机
-			try:
-				socket.sendbuf(buf)
-			except Exception as e:  # 发送出错
-				print('send_distance error:', e)  # 打印出错信息
-		else:
-			buf = []
 
 	def maze(self):
 		"""
