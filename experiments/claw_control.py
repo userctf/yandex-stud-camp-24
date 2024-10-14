@@ -1,5 +1,6 @@
 import socket
 import time
+from modules.arm import Arm
 
 host = "192.168.2.106"
 
@@ -33,42 +34,20 @@ def send_command(command: bytearray) -> bool:
         print(f"Ошибка сокета: {e}")
         return False
 
+print(dir(s))
+print()
 
-commands_forward_hand = [
-    bytearray([255, 1, 2, 170, 255]),
-    bytearray([255, 1, 1, 70, 255]),
-    bytearray([255, 1, 3, 85, 255]),
-]
+arm = Arm(s.dup())
 
-# Первая команда
-commands_prepare_grab = [
-    bytearray([255, 1, 4, 40, 255]),
-    bytearray([255, 1, 3, 85, 255]),
-    bytearray([255, 1, 1, 143, 255]),
-    bytearray([255, 1, 2, 41, 255]),
-    bytearray([255, 1, 1, 137, 255]),
-]
-time.sleep(4)
-commands_make_grab = [
-    bytearray([255, 1, 4, 86, 255]),
-    bytearray([255, 1, 2, 83, 255]),
-    bytearray([255, 1, 1, 143, 255]),
-    bytearray([255, 1, 3, 170, 255]),
-    bytearray([255, 1, 1, 155, 255]),
-    bytearray([255, 1, 2, 29, 255]),
-]
-commands_shake = [
-    bytearray([255, 1, 2, 103, 255]),
-    bytearray([255, 1, 1, 123, 255]),
-    bytearray([255, 1, 2, 123, 255]),
-    bytearray([255, 1, 1, 143, 255]),
-]
+arm.open_hand()
+arm.close_hand()
+time.sleep(1)
+arm.rotate_hand_horizontal()
+arm.set_arm(0, 300)
+arm.set_arm(300, 110)
+time.sleep(3)
+arm.set_arm(0, 300)
 
-# run_commands(commands_forward_hand)
-run_commands(commands_prepare_grab)
-# run_commands(commands_make_grab)
-# run_commands(commands_shake)
 
-# Закрываем соединение
 s.close()
 print("Соединение закрыто")
