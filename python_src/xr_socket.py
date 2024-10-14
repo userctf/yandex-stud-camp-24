@@ -316,19 +316,17 @@ class Socket:
 				beep.tone(beep.tone_all[cfg.TUNE][beet3 + 7], 0.5)
 
 		elif buffer[0] == 0x42:
-			for i in range(10):
-				data = {
-					"IR_L": gpio.digital_read(gpio.IR_L),
-					"IR_R": gpio.digital_read(gpio.IR_R),
-					"IR_M": gpio.digital_read(gpio.IR_M),
+			data = {
+				"IR_L": gpio.digital_read(gpio.IR_L),
+				"IR_R": gpio.digital_read(gpio.IR_R),
+				"IR_M": gpio.digital_read(gpio.IR_M),
 
-					"IRF_R": gpio.digital_read(gpio.IRF_R),
-					"IRF_L": gpio.digital_read(gpio.IRF_L),
+				"IRF_R": gpio.digital_read(gpio.IRF_R),
+				"IRF_L": gpio.digital_read(gpio.IRF_L),
 
-					"dist": ultrasonic.get_distance()
-				}
-				self.sendbuf(data.__str__().encode("utf-8"))
-				time.sleep(0.5)
+				"dist": ultrasonic.get_distance()
+			}
+			self.sendbuf(data.__str__().encode("utf-8"))
 
 		elif buffer[0] == 0x43:
 			color_id = int(buffer[1])
