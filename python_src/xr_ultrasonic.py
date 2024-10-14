@@ -57,9 +57,7 @@ class Ultrasonic(object):
 				break
 		t2 = time.time() 
 		distance = (t2 - t1) * 340 / 2 * 100 # cm
-		if distance < 500: 
-			distance = round(distance, 2)
-		else:
+		if distance > 500: 
 			distance = 0
 		
 		# exponential running average filter
@@ -67,8 +65,8 @@ class Ultrasonic(object):
 		# distance - текущее расстояние; cfg.DISTANCE - предыдущее расстояние
 		cfg.DISTANCE = cfg.DISTANCE + (distance - cfg.DISTANCE) * k
 
-		return cfg.DISTANCE
-
+		return round(cfg.DISTANCE, 2)
+	
 	def avoidbyragar(self):
 		"""
 		超声波避障函数
