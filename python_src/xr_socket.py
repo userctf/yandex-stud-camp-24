@@ -337,7 +337,7 @@ class Socket:
 			elif color_id == 1:
 				car_light.set_robot_color(cfg.COLOR['red'])
 			else:
-				car_light.set_robot_color(cfg.COLOR['velvet'])
+				car_light.set_robot_color(cfg.COLOR['violet'])
 
 		elif buffer == [0xef, 0xef, 0xee]:
 			print("Heartbeat Packet!")
