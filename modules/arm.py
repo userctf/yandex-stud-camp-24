@@ -1,8 +1,5 @@
 import math
 import socket
-import time
-from pyexpat.errors import messages
-
 from modules.module import BaseModule
 
 SLEEP_TIME = 0.5
@@ -50,8 +47,8 @@ class Arm(BaseModule):
         if angle > 170 or angle < 15:
             return BEEP_MESSAGE
         message = BASE_MESSAGE.copy()
-        message[1] = servo
-        message[2] = angle
+        message[2] = servo
+        message[3] = angle
         return message
 
 

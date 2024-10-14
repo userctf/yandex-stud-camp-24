@@ -41,9 +41,13 @@ arm = Arm(s.dup())
 
 arm.open_hand()
 arm.close_hand()
-arm.rotate_hand_vertical()
+time.sleep(1)
+arm.rotate_hand_horizontal()
 arm.set_arm(0, 300)
 arm.set_arm(300, 110)
+time.sleep(3)
+arm.set_arm(0, 300)
+
 
 s.close()
 print("Соединение закрыто")

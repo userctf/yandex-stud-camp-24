@@ -10,9 +10,12 @@ class BaseModule:
         pass
 
     def _send(self, message: bytearray, sleep_time: float):
-        self.__send_command(message)
-        print("ГДЕ БЛЯТЬ")
+        try:
+            self.socket.sendall(message)
+        except socket.error as e:
+            print(f"Ошибка сокета: {e}")
         time.sleep(sleep_time)
+
 
     def __send_command(self, command: bytearray) -> bool:
         try:
