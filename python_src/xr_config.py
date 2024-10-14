@@ -36,7 +36,7 @@ LASRT_RIGHT_SPEED = 100  	# 上一次机器人右侧速度
 SERVO_NUM = 1				# 舵机号
 SERVO_ANGLE = 90			# 舵机角度
 SERVO_ANGLE_LAST = 90		# 上一次舵机角度
-ANGLE = [90, 90, 90, 90, 90, 90, 72, 101]		# 8个舵机存储的角度
+ANGLE = [90, 90, 90, 90, 90, 90, 90, 5]	# 8个舵机存储的角度
 
 DISTANCE = 0  			# 超声波测距值
 AVOID_CHANGER = 1  		# 超声波避障启动标志

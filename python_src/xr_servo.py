@@ -53,7 +53,7 @@ class Servo(object):
 		"""
 		angle = self.angle_limit(servoangle)
 		buf = [0xff, 0x01, servonum, angle, 0xff]
-		print("Set servo:", servonum, "angle: ", angle)
+		# print("Set servo:", servonum, "angle: ", angle)
 		try:
 			i2c.writedata(i2c.mcu_address, buf)
 		except Exception as e:
@@ -75,5 +75,5 @@ class Servo(object):
 		for i in range(0, 8):
 			cfg.SERVO_NUM = i + 1
 			cfg.SERVO_ANGLE = cfg.ANGLE[i]
-			print("Set servo:", i + 1, "angle: ", cfg.ANGLE[i])
+			# print("Set servo:", i + 1, "angle: ", cfg.ANGLE[i])
 			self.set(i + 1, cfg.ANGLE[i])
