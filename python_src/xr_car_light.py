@@ -81,8 +81,8 @@ class Car_light(object):
 	def set_RU(self):
 		self.set_led(cfg.CAR_LIGHT, 1, cfg.COLOR['white'])
 		self.set_led(cfg.CAR_LIGHT, 2, cfg.COLOR['white'])
-		self.set_led(cfg.CAR_LIGHT, 3, cfg.COLOR['white'])
 
+		self.set_led(cfg.CAR_LIGHT, 3, cfg.COLOR['blue'])
 		self.set_led(cfg.CAR_LIGHT, 4, cfg.COLOR['blue'])
 		self.set_led(cfg.CAR_LIGHT, 5, cfg.COLOR['blue'])
 
