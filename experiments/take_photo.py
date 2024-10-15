@@ -16,7 +16,7 @@ def take_photo(url, photo_id):
         print("Can't save photo")
 
 cmd = input()
-os.mkdir("./photos")
+# os.mkdir("./photos")
 while cmd == "":
     print("new one")
     take_photo("http://192.168.2.106:8080/?action=stream", time.time())

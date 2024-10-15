@@ -61,7 +61,6 @@ def cruising_mode():
 	:return:none
 	"""
 	# print('pre_CRUISING_FLAG：{}'.format(cfg.PRE_CRUISING_FLAG))
-	time.sleep(0.001)
 	if cfg.PRE_CRUISING_FLAG != cfg.CRUISING_FLAG:  # 如果循环模式改变
 		cfg.LEFT_SPEED = cfg.LASRT_LEFT_SPEED  # 在切换其他模式的时候,恢复上次保存的速度值
 		cfg.RIGHT_SPEED = cfg.LASRT_RIGHT_SPEED
@@ -212,15 +211,10 @@ def status():
 			except:
 				print('oled initialization fail')
 
-	loops = cfg.LOOPS   # 通过赋值给一个中间值来自增
-	loops = loops + 1   # 自增
-	cfg.LOOPS = loops   # 赋值回去
+	cfg.LOOPS += 1
+	cfg.PS2_LOOPS += 1
 
-	loops = cfg.PS2_LOOPS   # 通过赋值给一个中间值来自增
-	loops = loops + 1   # 自增
-	cfg.PS2_LOOPS = loops   # 赋值回去
-
-	Timer(0.01, status).start()  # 每进入一次需要重新开启定时器
+	Timer(0.01, status).start()  # todo: move to lambda status() && sleep
 
 
 if __name__ == '__main__':
@@ -230,11 +224,8 @@ if __name__ == '__main__':
 	print("....wifirobots start!...")
 
 	os.system("sudo hciconfig hci0 name XiaoRGEEK")  # 设置蓝牙名称
-	time.sleep(0.1)
 	os.system("sudo hciconfig hci0 reset")  # 重启蓝牙
-	time.sleep(0.3)
 	os.system("sudo hciconfig hci0 piscan")  # 恢复蓝牙扫描功能
-	time.sleep(0.2)
 	print("now bluetooth discoverable")
 
 	servo.restore()  		# 复位舵机
@@ -242,8 +233,10 @@ if __name__ == '__main__':
 		oled.disp_default()		# oled显示初始化信息
 	except:
 		print('oled initialization fail')
-car_light.init_led() 	# 车灯秀
-time.sleep(0.1)
+# car_light.init_led() 	# 车灯秀
+car_light.set_robot_color(cfg.COLOR['red'])
+car_light.set_RU()
+# time.sleep(0.1)
 
 threads = []  # 创建一个线程序列
 t1 = threading.Thread(target=camera.run, args=())  # 摄像头数据收集处理线程
@@ -283,6 +276,5 @@ while True:
 				cfg.PS2_LOOPS = 0
 		cruising_mode() 										# 主线程中运行模式切换功能
 	except Exception as e:										# 捕获并打印出错信息
-		time.sleep(0.1)
 		print('cruising_mod error:', e)
 

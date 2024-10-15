@@ -40,9 +40,7 @@ ultrasonic = Ultrasonic()
 
 class Socket:
 	def __init__(self):
-		self.rec_flag = 0  # 0xff字节接收标志
-		self.count = 0  # 数据接收计数器标志
-		self.client = None
+		pass
 
 	def sendbuf(self, buf):
 		# print('TCP_CLIENT:%s++++++++BT_CLIENT:%s' % (cfg.TCP_CLIENT, cfg.BT_CLIENT))
@@ -73,14 +71,14 @@ class Socket:
 				cfg.BT_CLIENT = False		#启动蓝牙的服务的时候先把蓝牙服务关闭
 				cfg.BT_CLIENT, socket_address = server.accept()  # 初始化socket，并创建一个客户端和地址
 				client = cfg.BT_CLIENT
-				time.sleep(0.1)
+				# time.sleep(0.1)
 				print(str(socket_address[0]) + " %s connected!" % servername + "\r")  # 打印客户端和地址
 
 			elif servername == 'tcp':  # 如果选择的是wifi通信
 				cfg.TCP_CLIENT = False	#启动tcp的服务的时候先把tcp服务关闭
 				cfg.TCP_CLIENT, socket_address = server.accept()  # 初始化socket，并创建一个客户端和地址
 				client = cfg.TCP_CLIENT
-				time.sleep(0.1)
+				# time.sleep(0.1)
 				print(str(socket_address[0]) + "%s connected!" % servername + "\r")  # 打印客户端和地址
 
 			while True:
@@ -91,17 +89,14 @@ class Socket:
 						#print('data len %d:'%len(data))
 						break
 					if data[0] == 0xff and data[len(data) - 1] == 0xff:  # 如果包头和包尾是0xff则符合小二科技通信协议
-						buf = []  # 定义一个列表
-						for i in range(1, 4):  # 获取协议包中间3位的数据
-							buf.append(data[i])  # 往buf中添加数据
-						self.communication_decode(buf)  # 运行串口解析数据
+						self.communication_decode(data[1:4])  # 运行串口解析数据
 				except Exception as e:  # 接收出错
-					time.sleep(0.1)
 					print('socket received error:', e)  # 打印出错信息
 
 			client.close()		# 关闭客户端
 			client = None
 			go.stop()
+		# looks like it is unreachable code
 		go.stop()
 		server.close()
 
@@ -172,7 +167,7 @@ class Socket:
 			elif buffer[1] == 0x05:
 				cfg.COLOR_INDEX = cfg.COLOR_FOLLOW_SET['orange']
 				car_light.set_ledgroup(cfg.CAR_LIGHT, 8, cfg.COLOR['orange'])
-			time.sleep(1)
+			# time.sleep(1)
 
 		elif buffer[0] == 0x13:
 			if buffer[1] == 0x01 and cfg.CRUISING_FLAG == cfg.CRUISING_SET['normal']:
@@ -316,19 +311,17 @@ class Socket:
 				beep.tone(beep.tone_all[cfg.TUNE][beet3 + 7], 0.5)
 
 		elif buffer[0] == 0x42:
-			for i in range(10):
-				data = {
-					"IR_L": gpio.digital_read(gpio.IR_L),
-					"IR_R": gpio.digital_read(gpio.IR_R),
-					"IR_M": gpio.digital_read(gpio.IR_M),
+			data = {
+				"IR_L": gpio.digital_read(gpio.IR_L),
+				"IR_R": gpio.digital_read(gpio.IR_R),
+				"IR_M": gpio.digital_read(gpio.IR_M),
 
-					"IRF_R": gpio.digital_read(gpio.IRF_R),
-					"IRF_L": gpio.digital_read(gpio.IRF_L),
+				"IRF_R": gpio.digital_read(gpio.IRF_R),
+				"IRF_L": gpio.digital_read(gpio.IRF_L),
 
-					"dist": ultrasonic.get_distance()
-				}
-				self.sendbuf(data.__str__().encode("utf-8"))
-				time.sleep(0.5)
+				"dist": ultrasonic.get_distance()
+			}
+			self.sendbuf(data.__str__().encode("utf-8"))
 
 		elif buffer[0] == 0x43:
 			color_id = int(buffer[1])
