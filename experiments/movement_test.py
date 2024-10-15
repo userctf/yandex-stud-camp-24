@@ -21,10 +21,12 @@ s.connect((host, port))
 
 move = Move(s.dup())
 
-move.right()
-time.sleep(2)
-print('start moving')
-move.stop()
+# move.right()
+# time.sleep(2.3)
+# print('start moving')
+# move.stop()
+
+move.go(10)
 
 
 s.close()

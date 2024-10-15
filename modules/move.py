@@ -1,9 +1,11 @@
+import time
 import socket
 from module import BaseModule
 
 SLEEP_TIME = 0
-
 BASE_MESSAGE = bytearray([255, 0, 0, 0, 255])
+TIME_TO_TURN_360 = 2.3
+TIME_TO_GO_100 = 5
 
 
 class Move(BaseModule):
@@ -36,4 +38,20 @@ class Move(BaseModule):
         msg = BASE_MESSAGE.copy()
         msg[2] = 4
         self._send(msg)
+
+    def turn(self, angle):
+        if (angle > 0):
+            self.right()
+        else:
+            self.left()
+        time.sleep(TIME_TO_TURN_360 / 360 * abs(angle))
+        self.stop()
+
+    def go(self, distance):
+        if (distance > 0):
+            self.forward()
+        else:
+            self.back()
+        time.sleep(TIME_TO_GO_100 / 100 * abs(distance))
+        self.stop()
         
