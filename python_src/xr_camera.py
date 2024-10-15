@@ -112,7 +112,6 @@ class Camera(object):
         人脸检测及摄像头跟随
         :return:
         """
-        time.sleep(3)
         while True:
 
             if self.cap_open == 0:  # 摄像头没有打开
@@ -181,7 +180,6 @@ class Camera(object):
                 #     call("%s" % path_sh, shell=True)  # 启动shell命令结束摄像头视频流，一会摄像头颜色检测时使用opencv占用摄像头
                 # except Exception as e:
                 #     print(e.message)
-                time.sleep(2)
                 break  # 退出循环
 
     def colorfollow(self):
