@@ -234,6 +234,8 @@ if __name__ == '__main__':
 	except:
 		print('oled initialization fail')
 # car_light.init_led() 	# 车灯秀
+car_light.set_robot_color(cfg.COLOR['red'])
+car_light.set_RU()
 # time.sleep(0.1)
 
 threads = []  # 创建一个线程序列
