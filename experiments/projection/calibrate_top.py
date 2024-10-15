@@ -13,7 +13,7 @@ if __name__ == '__main__':
     args.setdefault('--debug', 'top_images/')
     args.setdefault('--square_size', 1.0)
     if not img_mask:
-        img_mask = 'top_images/*.png'
+        img_mask = 'top_images/l_*.png'
     else:
         img_mask = img_mask[0]
 
@@ -23,7 +23,7 @@ if __name__ == '__main__':
         os.mkdir(debug_dir)
     square_size = float(args.get('--square_size'))
 
-    pattern_size = (9, 5)
+    pattern_size = (8, 6)
     pattern_points = np.zeros((np.prod(pattern_size), 3), np.float32)
     pattern_points[:, :2] = np.indices(pattern_size).T.reshape(-1, 2)
     pattern_points *= square_size
