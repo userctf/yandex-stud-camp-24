@@ -35,7 +35,7 @@ class Servo(object):
 		pass
 
 	def angle_limit(self, angle, servo_num):
-		if servo_num == 3: # arm's capture servo
+		if servo_num == 4: # arm's capture servo
 			return max(min(angle, cfg.CAPTURE_ANGLE_MAX), cfg.CAPTURE_ANGLE_MIN)
 
 		if angle > cfg.ANGLE_MAX:  # 限制最大角度值
