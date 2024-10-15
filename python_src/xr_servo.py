@@ -34,10 +34,10 @@ class Servo(object):
 	def __init__(self):
 		pass
 
-	def angle_limit(self, angle):
-		"""
-		对舵机角度限幅，防止舵机堵转烧毁
-		"""
+	def angle_limit(self, angle, servo_num):
+		if servo_num == 3: # arm's capture servo
+			return max(min(angle, cfg.CAPTURE_ANGLE_MAX), cfg.CAPTURE_ANGLE_MIN)
+
 		if angle > cfg.ANGLE_MAX:  # 限制最大角度值
 			angle = cfg.ANGLE_MAX
 		elif angle < cfg.ANGLE_MIN:  # 限制最小角度值
@@ -51,7 +51,7 @@ class Servo(object):
 		:param servoangle:舵机角度
 		:return:
 		"""
-		angle = self.angle_limit(servoangle)
+		angle = self.angle_limit(servoangle, servonum)
 		buf = [0xff, 0x01, servonum, angle, 0xff]
 		# print("Set servo:", servonum, "angle: ", angle)
 		try:
