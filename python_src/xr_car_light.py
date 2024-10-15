@@ -77,6 +77,18 @@ class Car_light(object):
 
 	def set_robot_color(self, color):
 		self.set_ledgroup(cfg.POWER_LIGHT, 8, color)
+	
+	def set_RU(self):
+		self.set_led(cfg.CAR_LIGHT, 1, cfg.COLOR['white'])
+		self.set_led(cfg.CAR_LIGHT, 2, cfg.COLOR['white'])
+
+		self.set_led(cfg.CAR_LIGHT, 3, cfg.COLOR['blue'])
+		self.set_led(cfg.CAR_LIGHT, 4, cfg.COLOR['blue'])
+		self.set_led(cfg.CAR_LIGHT, 5, cfg.COLOR['blue'])
+
+		self.set_led(cfg.CAR_LIGHT, 6, cfg.COLOR['red'])
+		self.set_led(cfg.CAR_LIGHT, 7, cfg.COLOR['red'])
+		self.set_led(cfg.CAR_LIGHT, 8, cfg.COLOR['red'])
 
 	def left_turn_light(self):
 		"""
@@ -126,26 +138,3 @@ class Car_light(object):
 		time.sleep(0.05)
 		self.set_led(cfg.CAR_LIGHT, 6, cfg.COLOR['red'])
 		time.sleep(0.12)
-
-	def init_led(self):
-		"""
-		启动状态车灯
-		:return:
-		"""
-		self.set_ledgroup(cfg.CAR_LIGHT, 8, cfg.COLOR['black'])
-		for j in range(8):
-			for i in range(8):
-				self.set_led(cfg.CAR_LIGHT, i + 1, j + 1)
-				time.sleep(0.05)
-				self.set_ledgroup(cfg.CAR_LIGHT, 8, cfg.COLOR['black'])
-				time.sleep(0.05)
-
-			for i in range(4):
-				self.set_led(cfg.CAR_LIGHT, i + 1, j + 1)
-				self.set_led(cfg.CAR_LIGHT, 8 - i, j + 1)
-				time.sleep(0.05)
-
-			for i in range(4):
-				self.set_led(cfg.CAR_LIGHT, i + 1, cfg.COLOR['black'])
-				self.set_led(cfg.CAR_LIGHT, 8 - i, cfg.COLOR['black'])
-				time.sleep(0.05)
