@@ -1,11 +1,6 @@
 import requests
-from io import BytesIO
-import supervision as sv
 from inference import get_model
-from PIL import Image
-from PIL.ImageFile import ImageFile
 import cv2
-import supervision as s
 import requests
 import numpy as np
 from typing import Tuple
@@ -18,9 +13,9 @@ class Prediction:
         self.confidence: float = prediction.confidence
         self.position: Tuple[float, float] = (prediction.x, prediction.y)
 
-def predict(model, image):
+def predict(model, image) -> Prediction:
     results = model.infer(image)[0]
-    return results.predictions[0].class_name
+    return [Prediction(pred) for pred in results.predictions]
 
 def read_stream(model):
     stream = requests.get(url, stream=True)
@@ -36,7 +31,8 @@ def read_stream(model):
             print("Started to predict image")
             img = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
             results = predict(model, img)
-            print(results)
+            for item in results:
+                print(item.__dict__)
 
 model = get_model(model_id="top-camera-detection-r4fqs/2", api_key="uGu8WU7fJgR8qflCGaqP")
 read_stream(model)
