@@ -5,7 +5,7 @@ from module import BaseModule
 SLEEP_TIME = 0
 BASE_MESSAGE = bytearray([255, 0, 0, 0, 255])
 TIME_TO_TURN_360 = 2.3
-TIME_TO_GO_100 = 5
+TIME_TO_GO_100 = 4
 
 
 class Move(BaseModule):
