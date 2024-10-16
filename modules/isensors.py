@@ -1,6 +1,7 @@
 from module import BaseModule
 from sensors import Sensors
 
+from time import sleep
 from inference import get_model
 import numpy
 import cv2
@@ -20,7 +21,7 @@ class Prediction:
         self.class_name: str = prediction.class_name
         self.confidence: float = prediction.confidence
         self.center: Tuple[float, float] = (prediction.x, prediction.y)
-        self.points = prediction.points
+        self.points = [(int(pred.x), int(pred.y)) for pred in prediction.points]
         
     def get_coords(self) -> Tuple:
         left_top = self.points[0]
@@ -42,11 +43,12 @@ class ISensors(Sensors):
         while True:
             img = self.get_photo(is_onboard_cap=True)
             p = self.__predict(img)
-            # frame = self._write_on_img(img, p)
+            frame = self._write_on_img(img, p)
             
             cv2.imshow('Frame with Box', img)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+            sleep(0.1)
         
         cv2.destroyAllWindows()
             
@@ -56,7 +58,7 @@ class ISensors(Sensors):
             left_up, right_down = pred.get_coords()
             print("debug: ", left_up, right_down)
             color = (0, 255, 255)
-            # frame = cv2.rectangle(frame, left_up, right_down, color, 2)
+            frame = cv2.rectangle(frame, left_up, right_down, color, 2)
 
         return frame
 
