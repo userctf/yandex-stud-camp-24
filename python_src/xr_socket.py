@@ -332,6 +332,30 @@ class Socket:
 			else:
 				car_light.set_robot_color(cfg.COLOR['violet'])
 
+		elif buffer[0] == 0x44:
+			time_to_move = buffer[1] / 10
+			go.forward()
+			time.sleep(time_to_move)
+			go.stop()
+
+		elif buffer[0] == 0x45:
+			duration = buffer[1] / 10
+			go.back()
+			time.sleep(duration)
+			go.stop()
+
+		elif buffer[0] == 0x46:
+			duration = buffer[1] / 10
+			go.right()
+			time.sleep(duration)
+			go.stop()
+
+		elif buffer[0] == 0x47:
+			duration = buffer[1] / 10
+			go.left()
+			time.sleep(duration)
+			go.stop()
+
 		elif buffer == [0xef, 0xef, 0xee]:
 			print("Heartbeat Packet!")
 

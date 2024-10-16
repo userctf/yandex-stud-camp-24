@@ -7,7 +7,6 @@ from move import Move
 
 import socket
 import time
-#from modules.move import Move
 
 host = "192.168.2.106"
 
@@ -22,46 +21,9 @@ s.connect((host, port))
 move = Move(s.dup())
 
 
-def on_press_w():
-    move.forward()
-    print("Нажата клавиша W")
-
-def on_press_a():
-    move.left()
-    print("Нажата клавиша A")
-
-def on_press_s():
-    move.back()
-    print("Нажата клавиша S")
-
-def on_press_d():
-    move.right()
-    print("Нажата клавиша D")
-
-def on_release():
-    move.stop()
-    print("Клавиша отпущена")
-
-# Регистрация обработчиков нажатий
-keyboard.on_press_key('w', lambda _: on_press_w())
-keyboard.on_press_key('a', lambda _: on_press_a())
-keyboard.on_press_key('s', lambda _: on_press_s())
-keyboard.on_press_key('d', lambda _: on_press_d())
-
-# Регистрация обработчиков отпусканий
-keyboard.on_release_key('w', lambda _: on_release())
-keyboard.on_release_key('a', lambda _: on_release())
-keyboard.on_release_key('s', lambda _: on_release())
-keyboard.on_release_key('d', lambda _: on_release())
-
-# Запуск прослушивателя
-keyboard.wait()
-
-
-# move.right()
-# time.sleep(2.3)
-# print('start moving')
-# move.stop()
+move.right()
+time.sleep(0.1)
+move.stop()
 
 
 s.close()
