@@ -55,7 +55,7 @@ class Prediction:
             return ObjectType.BUTTONS
 
 class ISensors(Sensors):
-    CONFIDENCE = 0.4
+    CONFIDENCE = 0.5
     
     def __init__(self, s: socket.socket, onboard_stream_url: str, upper_stream_url: str, api_key: str):
         super().__init__(s.dup(), onboard_stream_url, upper_stream_url)    
@@ -82,7 +82,7 @@ class ISensors(Sensors):
             color = pred.get_color()
             
             white_color = (255, 255, 255)  # White color in BGR
-            frame = cv2.putText(frame, str(pred.confidence), left_up, cv2.FONT_HERSHEY_SIMPLEX, 1, white_color, 2)
+            frame = cv2.putText(frame, str(round(pred.confidence, 3)), (left_up[0], left_up[1] - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, white_color, 2)
             frame = cv2.rectangle(frame, left_up, right_down, color, 2)
 
         return frame
