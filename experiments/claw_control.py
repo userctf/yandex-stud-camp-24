@@ -34,19 +34,24 @@ def send_command(command: bytearray) -> bool:
         print(f"Ошибка сокета: {e}")
         return False
 
-print(dir(s))
-print()
 
 arm = Arm(s.dup())
 
-arm.open_hand()
-arm.close_hand()
-time.sleep(1)
-arm.rotate_hand_horizontal()
-arm.set_arm(0, 300)
-arm.set_arm(300, 110)
-time.sleep(3)
-arm.set_arm(0, 300)
+# arm.set_arm(10, 300)
+# arm.rotate_hand_horizontal()
+# arm.close_hand()
+# arm.open_hand()
+# time.sleep(5)
+# arm.set_arm(10, 300)
+
+# while True:
+#     arm.set_arm(150, 100)
+#     arm.set_arm(150, 200)
+arm.grab(100)
+arm.default()
+
+
+
 
 
 s.close()
