@@ -10,7 +10,7 @@ from enum import Enum
 from typing import Tuple, List
 
 
-class Color(Enum):
+class ObjectType(Enum):
     CUBE = 0
     BALL = 1
     BASKET = 2
@@ -19,6 +19,7 @@ class Color(Enum):
 class Prediction:
     def __init__(self, prediction):
         self.class_name: str = prediction.class_name
+        self.object_type: ObjectType = Prediction.get_type(prediction.class_name)
         self.confidence: float = prediction.confidence
         self.center: Tuple[float, float] = (prediction.x, prediction.y)
         self.points = [(int(pred.x), int(pred.y)) for pred in prediction.points]
@@ -30,7 +31,28 @@ class Prediction:
         # right_top = 
         
         return (left_top, right_bottom)
+    
+    def get_color(self) -> Tuple:
+        if self.object_type == ObjectType.BALL:
+            return (0, 115, 255) # orange
+        elif self.object_type == ObjectType.CUBE:
+            return (0, 10, 255) # red
+        elif self.object_type == ObjectType.BASKET:
+            return (28, 28, 28) # black
+        elif self.object_type == ObjectType.BUTTONS:
+            return (94, 81, 81) # grey
         
+        
+    def get_type(name: str) -> ObjectType:
+        print("debug: ", name)
+        if name == "red cube":
+            return ObjectType.CUBE
+        elif name == "orange ball":
+            return ObjectType.BALL
+        elif name == "grey basket":
+            return ObjectType.BASKET
+        elif name == "junction box":
+            return ObjectType.BUTTONS
 
 class ISensors(Sensors):
     CONFIDENCE = 0.4
@@ -57,7 +79,7 @@ class ISensors(Sensors):
         for pred in predictions:
             left_up, right_down = pred.get_coords()
             print("debug: ", left_up, right_down)
-            color = (0, 255, 255)
+            color = pred.get_color()
             frame = cv2.rectangle(frame, left_up, right_down, color, 2)
 
         return frame
