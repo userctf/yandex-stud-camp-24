@@ -59,4 +59,6 @@ class Sensors(BaseModule):
                 # read_bytes = read_bytes[b+2:]
                 return jpg
         
+        stream.close()
+        
    
