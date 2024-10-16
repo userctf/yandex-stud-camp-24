@@ -20,7 +20,7 @@ class Prediction:
     def __init__(self, prediction):
         # print("debug:", prediction)
         self.class_name: str = prediction.class_name
-        self.object_type: ObjectType = Prediction.get_type(prediction.class_name)
+        self.object_type: ObjectType = Prediction.__get_type(prediction.class_name)
         self.confidence: float = prediction.confidence
         self.center: Tuple[float, float] = (prediction.x, prediction.y)
         self.size: Tuple[float, float] = (prediction.width, prediction.height)
@@ -50,8 +50,7 @@ class Prediction:
             return (94, 81, 81) # grey
         
         
-    def get_type(name: str) -> ObjectType:
-        print("Name: ",name)
+    def __get_type(name: str) -> ObjectType:
         if name == "red cube":
             return ObjectType.CUBE
         elif name == "orange ball":
@@ -60,6 +59,8 @@ class Prediction:
             return ObjectType.BASKET
         elif name == "junction box":
             return ObjectType.BUTTONS
+        else:
+            print("[ERROR] Can not find name ", name)
 
 class ISensors(Sensors):
     CONFIDENCE = 0.5
@@ -76,10 +77,8 @@ class ISensors(Sensors):
             
             cv2.imshow('Frame with Box', img)
             print("len to box:", self.get_len_to(ObjectType.CUBE))
-            print(p[0].get_type())
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-            # sleep(0.1)
         
         cv2.destroyAllWindows()
         
@@ -95,7 +94,7 @@ class ISensors(Sensors):
         return self.__get_mm_by_coords(obj_x, obj_y)
         
     def __get_mm_by_coords(self, x: int, y: int) -> (int, int):
-        m = self.get_projection_matrix()
+        m = self.__get_projection_matrix()
         proj_x, proj_y = self.__find_projection_coord(x, y, m)
         return self.__convert_coord_to_mm(proj_x, proj_y)
         
@@ -112,7 +111,6 @@ class ISensors(Sensors):
         transform_matrix = numpy.array([[ 4.06696294e+00,  3.85634343e+00, -7.50161575e+02],
                                     [-3.55573093e-01,  1.98806608e+01, -1.34064097e+03],
                                     [-1.80493956e-04,  6.39010156e-03,  1.00000000e+00]])
-        print("debug matrix:", transform_matrix)
         return transform_matrix
     
     def __find_projection_coord(self, x_src: int, y_src: int, proj_matrix: numpy.array) -> tuple[int, int]:
@@ -132,7 +130,6 @@ class ISensors(Sensors):
     def _write_on_img(self, frame: numpy.ndarray, predictions: List[Prediction]) -> numpy.ndarray:
         for pred in predictions:
             left_up, right_down = pred.get_coords()
-            print("debug: ", left_up, right_down)
             color = pred.get_color()
             
             white_color = (255, 255, 255)  # White color in BGR
@@ -144,9 +141,9 @@ class ISensors(Sensors):
     def __get_objects(self, image: numpy.ndarray, object: ObjectType) -> List[Prediction]:
         found_objects = self.__predict(image)
         res = []
-        for object in found_objects:
-            if object.object_type == object:
-                res.append(object)
+        for found_object in found_objects:
+            if found_object.object_type == object:
+                res.append(found_object)
                 
         return sorted(res, key=lambda pred: pred.confidence, reverse=True)
                 
@@ -168,5 +165,6 @@ print(f"Соединение с {host}:{port}")
 s.connect((host, port))      
 S = ISensors(s, "http://192.168.2.106:8080/?action=stream", None, "uGu8WU7fJgR8qflCGaqP")
 S.test()
+print("len to box:", self.get_len_to(ObjectType.CUBE))
 
 s.close()
