@@ -21,9 +21,9 @@ s.connect((host, port))
 move = Move(s.dup())
 
 
-move.right()
-time.sleep(0.1)
-move.stop()
+move.turn_right(1)
+
+
 
 
 s.close()
