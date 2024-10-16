@@ -2,18 +2,24 @@ import math
 import socket
 from modules.module import BaseModule
 
-SLEEP_TIME = 0.4
+SLEEP_TIME = 0.5
 
 BASE_MESSAGE = bytearray([255, 1, 0, 90, 255])
 BEEP_MESSAGE = bytearray([255, 65, 1, 1, 255])
-DEFAULT_POSITION = [81, 170, 170, 77]
+DEFAULT_POSITION = (100, 120)
+DEFAULT_POSITION_UP = (100, 140)
+BUTTON_HEIGHT = 105
+OBJECT_HEIGHT = 10
+TOP_POSITION = (5, 300)
 
 
 class Arm(BaseModule):
     def __init__(self, s: socket.socket):
         super().__init__(s.dup())
         self.state = [0, 0, 0, 0]
-        self._set_state(DEFAULT_POSITION)
+        self.set_arm(*DEFAULT_POSITION, fast=True)
+        self.rotate_hand_vertical()
+        self.close_hand()
 
     @staticmethod
     def _calculate_angles(length: int, height: int) -> tuple[int, int]:
@@ -67,7 +73,7 @@ class Arm(BaseModule):
     def close_hand(self, ball: bool = False):
         state = self.state.copy()
         if ball:
-            state[3] = 82
+            state[3] = 87
         else:
             state[3] = 77
         self._set_state(state)
@@ -92,7 +98,29 @@ class Arm(BaseModule):
         first, second = self._calculate_angles(length, height)
         print(f"{length, height}: Calculated angles are {first} and {second}")
         state[0], state[1] = (first + state[0]) // 2, (second + state[1]) // 2
+        print(state)
         if not fast:
             self._set_state(state)
+        print(state)
         state[0], state[1] = first, second
         self._set_state(state)
+
+    def hit(self, length: int):
+        self.rotate_hand_horizontal()
+        self.close_hand()
+        self.set_arm(*TOP_POSITION, fast=True)
+        self.set_arm(length, 105, fast=True)
+
+    def grab(self, length: int, ball: bool = False):
+        if length > 250:
+            print("WARNING. MAX prooved LENGTH IS 250, BUT YOUR'S IS %s", length)
+        self.set_arm(*DEFAULT_POSITION_UP)
+        self.rotate_hand_horizontal()
+        self.open_hand()
+        self.set_arm(length, OBJECT_HEIGHT)
+        self.close_hand(ball)
+        self.default()
+        self.rotate_hand_vertical()
+
+    def default(self):
+        self.set_arm(*DEFAULT_POSITION)
