@@ -11,9 +11,10 @@ from typing import List
 class Sensors(BaseModule):
     BASE_MESSAGE = bytearray([255, 42, 0, 0, 255])
     
-    def __init__(self, s: socket.socket, stream_url: str):
+    def __init__(self, s: socket.socket, onboard_stream_url: str, upper_stream_url: str):
         super().__init__(s.dup())
-        self.stream_url = stream_url
+        self.onboard_stream_url = stream_url
+        self.upper_stream_url = upper_stream_url
 
     def _send(self, message: bytearray):
         super()._send(message, 0)
@@ -23,6 +24,7 @@ class Sensors(BaseModule):
         return self._get_respone().decode('utf-8')
     
     
+    # sensor poll
     def get_IR_up(self) -> List[bool]:
         cmd = BASE_MESSAGE.copy()
         cmd[2] = 0x00
@@ -38,13 +40,15 @@ class Sensors(BaseModule):
         cmd[2] = 0x02
         return float(_send_and_get(cmd))
     
-    def get_photo(self) -> numpy.ndarray:
-        jpg = self.__read_jpg_from_stream()
+    # get photo from stream
+    def get_photo(self, is_onboard_cap = True) -> numpy.ndarray:
+        url = self.onboard_stream_url if is_onboard_cap else self.upper_stream_url
+        jpg = self.__read_jpg_from_stream(url)
         img = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
         return img
                     
-    def __read_jpg_from_stream(self) -> bytes:
-        stream = requests.get(self.stream_url, stream=True)
+    def __read_jpg_from_stream(self, url: str) -> bytes:
+        stream = requests.get(url, stream=True)
         read_bytes = bytes()
         for chunk in stream.iter_content(chunk_size=1024):
             read_bytes += chunk
