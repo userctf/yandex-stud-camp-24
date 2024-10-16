@@ -315,7 +315,7 @@ class Socket:
 			data = []
 			if sensor_id == 0x00:
 				data = [
-					gpio.digital_read(gpio.IR_L), #IR_L
+					gpio.digital_read(gpio.IR_L), # IR_L
 					gpio.digital_read(gpio.IR_R), # IR_R
 					gpio.digital_read(gpio.IR_M), # IR_M					
 				]
