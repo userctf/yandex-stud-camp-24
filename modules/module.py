@@ -19,9 +19,9 @@ class BaseModule:
         time.sleep(sleep_time)
         return True
         
-    def _get_respone(self) -> bytes:
+    def _get_response(self) -> bytes:
         try:
-            data = self.s.recv(RECV_LEN)
+            data = self.s.recv(self.RECV_LEN)
             if not data:
                 print(f"Данные от сокета не пришли: {e}")
                 

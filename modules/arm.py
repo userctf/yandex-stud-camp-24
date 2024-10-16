@@ -100,8 +100,8 @@ class Arm(BaseModule):
         print(state)
         if not fast:
             self._set_state(state)
-        print(state)
         state[0], state[1] = first, second
+        print(state)
         self._set_state(state)
 
     def hit(self, length: int):
