@@ -46,7 +46,7 @@ class Move(BaseModule):
             msg[2] = int(duration * 100)
             self._send(msg)
         else:
-            print('duration must be from 0 to 2.55')
+            print('duration must be from 0 to 2.54')
 
     def go_back(self, duration):
         if (0 < duration and duration < 2.55):
@@ -55,16 +55,16 @@ class Move(BaseModule):
             msg[2] = int(duration * 100)
             self._send(msg)
         else:
-            print('duration must be from 0 to 2.55')
+            print('duration must be from 0 to 2.54')
     
     def turn_right(self, duration):
         if (0 < duration and duration < 2.55):
                 msg = BASE_MESSAGE.copy()
-                msg[1] = 70
+                msg[1] = 72
                 msg[2] = int(duration * 100)
                 self._send(msg)
         else:
-            print('duration must be from 0 to 2.55')
+            print('duration must be from 0 to 2.54')
 
     def turn_left(self, duration):
         if (0 < duration and duration < 2.55):
@@ -73,7 +73,7 @@ class Move(BaseModule):
             msg[2] = int(duration * 100)
             self._send(msg)
         else:
-            print('duration must be from 0 to 2.55')
+            print('duration must be from 0 to 2.54')
 
     
 

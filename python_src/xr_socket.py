@@ -344,7 +344,7 @@ class Socket:
 			time.sleep(duration)
 			go.stop()
 
-		elif buffer[0] == 0x46:
+		elif buffer[0] == 0x48:
 			duration = buffer[1] / 100
 			go.right()
 			time.sleep(duration)
