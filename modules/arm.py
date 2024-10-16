@@ -2,14 +2,13 @@ import math
 import socket
 from modules.module import BaseModule
 
-SLEEP_TIME = 0.5
+SLEEP_TIME = 0.4
 
 BASE_MESSAGE = bytearray([255, 1, 0, 90, 255])
 BEEP_MESSAGE = bytearray([255, 65, 1, 1, 255])
-DEFAULT_POSITION = (100, 120)
-DEFAULT_POSITION_UP = (100, 140)
+DEFAULT_POSITION = (100, 190)
 BUTTON_HEIGHT = 105
-OBJECT_HEIGHT = 10
+OBJECT_HEIGHT = 8
 TOP_POSITION = (5, 300)
 
 
@@ -114,7 +113,6 @@ class Arm(BaseModule):
     def grab(self, length: int, ball: bool = False):
         if length > 250:
             print("WARNING. MAX prooved LENGTH IS 250, BUT YOUR'S IS %s", length)
-        self.set_arm(*DEFAULT_POSITION_UP)
         self.rotate_hand_horizontal()
         self.open_hand()
         self.set_arm(length, OBJECT_HEIGHT)
