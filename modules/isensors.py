@@ -18,16 +18,23 @@ class ObjectType(Enum):
 
 class Prediction:
     def __init__(self, prediction):
+        # print("debug:", prediction)
         self.class_name: str = prediction.class_name
         self.object_type: ObjectType = Prediction.get_type(prediction.class_name)
         self.confidence: float = prediction.confidence
         self.center: Tuple[float, float] = (prediction.x, prediction.y)
-        self.points = [(int(pred.x), int(pred.y)) for pred in prediction.points]
+        self.size: Tuple[float, float] = (prediction.width, prediction.height)
         
     def get_coords(self) -> Tuple:
-        left_top = self.points[0]
+        left_top = (
+            int(self.center[0] - 0.5 * self.size[0]), 
+            int(self.center[1] - 0.5 * self.size[1])
+        )
         # left_bottom = 
-        right_bottom = self.points[2]
+        right_bottom = (
+            int(self.center[0] + 0.5 * self.size[0]), 
+            int(self.center[1] + 0.5 * self.size[1])
+        )
         # right_top = 
         
         return (left_top, right_bottom)
@@ -44,7 +51,7 @@ class Prediction:
         
         
     def get_type(name: str) -> ObjectType:
-        print("debug: ", name)
+        print("Name: ",name)
         if name == "red cube":
             return ObjectType.CUBE
         elif name == "orange ball":
@@ -56,10 +63,10 @@ class Prediction:
 
 class ISensors(Sensors):
     CONFIDENCE = 0.5
-    
+        
     def __init__(self, s: socket.socket, onboard_stream_url: str, upper_stream_url: str, api_key: str):
         super().__init__(s.dup(), onboard_stream_url, upper_stream_url)    
-        self.model = get_model(model_id="top-camera-detection-r4fqs/2", api_key=api_key)
+        self.model = get_model(model_id="robot_camera_detector/1", api_key=api_key)
         
     def test(self):
         while True:
@@ -68,12 +75,59 @@ class ISensors(Sensors):
             frame = self._write_on_img(img, p)
             
             cv2.imshow('Frame with Box', img)
+            print("len to box:", self.get_len_to(ObjectType.CUBE))
+            print(p[0].get_type())
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-            sleep(0.1)
+            # sleep(0.1)
         
         cv2.destroyAllWindows()
-            
+        
+    def get_len_to(self, object: ObjectType) -> (int, int):
+        frame = self.get_photo(is_onboard_cap=True)
+        items = self.__get_objects(frame, object)
+        if len(items) == 0:
+            return -1
+        most_relevant = items[0]
+        coords = most_relevant.get_coords()
+        obj_x = (coords[0][0] + coords[1][0]) // 2
+        obj_y = coords[1][1]
+        return self.__get_mm_by_coords(obj_x, obj_y)
+        
+    def __get_mm_by_coords(self, x: int, y: int) -> (int, int):
+        m = self.get_projection_matrix()
+        proj_x, proj_y = self.__find_projection_coord(x, y, m)
+        return self.__convert_coord_to_mm(proj_x, proj_y)
+        
+    def __convert_coord_to_mm(self, x: int, y: int) -> tuple[int, int]:
+        # coords with respect to (0, 0) coord of arm
+        x -= 600
+        y = 2000 - y
+        mm = 105
+        pxl = 305
+        return int(x * mm / pxl) + 75, int(y * mm / pxl) + 120
+    
+    def __get_projection_matrix(self) -> numpy.array:
+        # precalced (see algo in git ml/robot_projection.py)
+        transform_matrix = numpy.array([[ 4.06696294e+00,  3.85634343e+00, -7.50161575e+02],
+                                    [-3.55573093e-01,  1.98806608e+01, -1.34064097e+03],
+                                    [-1.80493956e-04,  6.39010156e-03,  1.00000000e+00]])
+        print("debug matrix:", transform_matrix)
+        return transform_matrix
+    
+    def __find_projection_coord(self, x_src: int, y_src: int, proj_matrix: numpy.array) -> tuple[int, int]:
+        x_dst = int((proj_matrix[0][0] * x_src + proj_matrix[0][1] * y_src + proj_matrix[0][2]) /
+                    (proj_matrix[2][0] * x_src + proj_matrix[2][1] * y_src + proj_matrix[2][2]))
+        y_dst = int((proj_matrix[1][0] * x_src + proj_matrix[1][1] * y_src + proj_matrix[1][2]) /
+                    (proj_matrix[2][0] * x_src + proj_matrix[2][1] * y_src + proj_matrix[2][2]))
+        return x_dst, y_dst
+    
+    def __show_projection_photo(self, path: str, proj_matrix: numpy.array):
+        img = cv2.imread(path)
+        assert img is not None, "file could not be read, check with os.path.exists()"
+        dst = cv2.warpPerspective(img, proj_matrix, (LENGTH, HEIGHT))
+        plt.imshow(dst)
+        plt.show()
         
     def _write_on_img(self, frame: numpy.ndarray, predictions: List[Prediction]) -> numpy.ndarray:
         for pred in predictions:
@@ -87,10 +141,14 @@ class ISensors(Sensors):
 
         return frame
 
-    def __find_object(self, image: numpy.ndarray):
+    def __get_objects(self, image: numpy.ndarray, object: ObjectType) -> List[Prediction]:
         found_objects = self.__predict(image)
+        res = []
         for object in found_objects:
-            print(object.__dict__)
+            if object.object_type == object:
+                res.append(object)
+                
+        return sorted(res, key=lambda pred: pred.confidence, reverse=True)
                 
     def __predict(self, image: numpy.ndarray) -> List[Prediction]:
         results = self.model.infer(image, confidence=self.CONFIDENCE)[0]
@@ -108,7 +166,7 @@ print(f"Соединение с {host}:{port}")
 
 # Устанавливаем соединение
 s.connect((host, port))      
-s = ISensors(s, "http://192.168.2.106:8080/?action=stream", None, "uGu8WU7fJgR8qflCGaqP")
-s.test()
+S = ISensors(s, "http://192.168.2.106:8080/?action=stream", None, "uGu8WU7fJgR8qflCGaqP")
+S.test()
 
 s.close()
