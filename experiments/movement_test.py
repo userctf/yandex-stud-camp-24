@@ -20,9 +20,10 @@ print(f"Соединение с {host}:{port}")
 s.connect((host, port))
 move = Move(s.dup())
 
-for i in range(8):
-    move.turn_left(0.37)
-    time.sleep(1)
+for i in range(6):
+    #move.turn_deg(30)
+    move.turn_right(0.27)
+    time.sleep(1.5)
 
 
 s.close()
