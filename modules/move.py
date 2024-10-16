@@ -39,19 +39,43 @@ class Move(BaseModule):
         msg[2] = 4
         self._send(msg)
 
-    def turn(self, angle):
-        if (angle > 0):
-            self.right()
+    def go_forward(self, duration):
+        if (0 < duration and duration < 2.55):
+            msg = BASE_MESSAGE.copy()
+            msg[1] = 68
+            msg[2] = int(duration * 100)
+            self._send(msg)
         else:
-            self.left()
-        time.sleep(TIME_TO_TURN_360 / 360 * abs(angle))
-        self.stop()
+            print('duration must be from 0 to 2.54')
 
-    def go(self, distance):
-        if (distance > 0):
-            self.forward()
+    def go_back(self, duration):
+        if (0 < duration and duration < 2.55):
+            msg = BASE_MESSAGE.copy()
+            msg[1] = 69
+            msg[2] = int(duration * 100)
+            self._send(msg)
         else:
-            self.back()
-        time.sleep(TIME_TO_GO_100 / 100 * abs(distance))
-        self.stop()
+            print('duration must be from 0 to 2.54')
+    
+    def turn_right(self, duration):
+        if (0 < duration and duration < 2.55):
+                msg = BASE_MESSAGE.copy()
+                msg[1] = 72
+                msg[2] = int(duration * 100)
+                self._send(msg)
+        else:
+            print('duration must be from 0 to 2.54')
+
+    def turn_left(self, duration):
+        if (0 < duration and duration < 2.55):
+            msg = BASE_MESSAGE.copy()
+            msg[1] = 71
+            msg[2] = int(duration * 100)
+            self._send(msg)
+        else:
+            print('duration must be from 0 to 2.54')
+
+    
+
+    
         

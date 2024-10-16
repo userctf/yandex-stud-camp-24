@@ -6,16 +6,23 @@ SLEEP_TIME = 0.5
 
 BASE_MESSAGE = bytearray([255, 1, 0, 90, 255])
 BEEP_MESSAGE = bytearray([255, 65, 1, 1, 255])
+DEFAULT_POSITION = (100, 120)
+DEFAULT_POSITION_UP = (100, 140)
+BUTTON_HEIGHT = 105
+OBJECT_HEIGHT = 10
+TOP_POSITION = (5, 300)
 
 
 class Arm(BaseModule):
     def __init__(self, s: socket.socket):
         super().__init__(s.dup())
+        self.state = [0, 0, 0, 0]
+        self.set_arm(*DEFAULT_POSITION, fast=True)
+        self.rotate_hand_vertical()
+        self.close_hand()
 
-    def _send(self, message: bytearray, sleep_time=SLEEP_TIME):
-        super()._send(message, sleep_time)
-
-    def _calculate_angles(self, length: int, height: int) -> tuple[int, int]:
+    @staticmethod
+    def _calculate_angles(length: int, height: int) -> tuple[int, int]:
         l1 = 95
         l2 = 160
         radius = l1 + l2
@@ -40,6 +47,8 @@ class Arm(BaseModule):
 
         return first, second
 
+    def _send(self, message: bytearray, sleep_time=SLEEP_TIME) -> bool:
+        return super()._send(message, sleep_time)
 
     def _make_message(self, servo: int, angle: int):
         if servo not in (1, 2, 3, 4):
@@ -51,29 +60,67 @@ class Arm(BaseModule):
         message[3] = angle
         return message
 
+    def _set_state(self, state: list[int]):
+        order = (3, 4, 1, 2)
+        if state[1] > self.state[1]:
+            order = (3, 4, 2, 1)
+        for servo in order:
+            if self.state[servo - 1] == state[servo - 1]:
+                continue
+            if self._send(self._make_message(servo, state[servo - 1])):
+                self.state[servo - 1] = state[servo - 1]
 
     def close_hand(self, ball: bool = False):
+        state = self.state.copy()
         if ball:
-            message = self._make_message(4, 82)
+            state[3] = 87
         else:
-            message = self._make_message(4, 77)
-        self._send(message)
-
+            state[3] = 77
+        self._set_state(state)
 
     def open_hand(self):
-        self._send(self._make_message(4, 53))
-
+        state = self.state.copy()
+        state[3] = 50
+        self._set_state(state)
 
     def rotate_hand_vertical(self):
-        self._send(self._make_message(3, 170))
-
+        state = self.state.copy()
+        state[2] = 170
+        self._set_state(state)
 
     def rotate_hand_horizontal(self):
-        self._send(self._make_message(3, 90))
+        state = self.state.copy()
+        state[2] = 90
+        self._set_state(state)
 
-
-    def set_arm(self, length: int, height: int):
+    def set_arm(self, length: int, height: int, fast: bool = False):
+        state = self.state.copy()
         first, second = self._calculate_angles(length, height)
         print(f"{length, height}: Calculated angles are {first} and {second}")
-        self._send(self._make_message(1, first))
-        self._send(self._make_message(2, second))
+        state[0], state[1] = (first + state[0]) // 2, (second + state[1]) // 2
+        print(state)
+        if not fast:
+            self._set_state(state)
+        print(state)
+        state[0], state[1] = first, second
+        self._set_state(state)
+
+    def hit(self, length: int):
+        self.rotate_hand_horizontal()
+        self.close_hand()
+        self.set_arm(*TOP_POSITION, fast=True)
+        self.set_arm(length, 105, fast=True)
+
+    def grab(self, length: int, ball: bool = False):
+        if length > 250:
+            print("WARNING. MAX prooved LENGTH IS 250, BUT YOUR'S IS %s", length)
+        self.set_arm(*DEFAULT_POSITION_UP)
+        self.rotate_hand_horizontal()
+        self.open_hand()
+        self.set_arm(length, OBJECT_HEIGHT)
+        self.close_hand(ball)
+        self.default()
+        self.rotate_hand_vertical()
+
+    def default(self):
+        self.set_arm(*DEFAULT_POSITION)
