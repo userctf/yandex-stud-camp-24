@@ -1,7 +1,7 @@
 from module import BaseModule
 
 import cv2
-import math
+import requests
 import numpy
 import socket
 from typing import List
@@ -13,7 +13,7 @@ class Sensors(BaseModule):
     
     def __init__(self, s: socket.socket, onboard_stream_url: str, upper_stream_url: str):
         super().__init__(s.dup())
-        self.onboard_stream_url = stream_url
+        self.onboard_stream_url = onboard_stream_url
         self.upper_stream_url = upper_stream_url
 
     def _send(self, message: bytearray):
@@ -44,7 +44,7 @@ class Sensors(BaseModule):
     def get_photo(self, is_onboard_cap = True) -> numpy.ndarray:
         url = self.onboard_stream_url if is_onboard_cap else self.upper_stream_url
         jpg = self.__read_jpg_from_stream(url)
-        img = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+        img = cv2.imdecode(numpy.frombuffer(jpg, dtype=numpy.uint8), cv2.IMREAD_COLOR)
         return img
                     
     def __read_jpg_from_stream(self, url: str) -> bytes:
