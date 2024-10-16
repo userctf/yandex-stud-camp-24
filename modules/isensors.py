@@ -80,6 +80,9 @@ class ISensors(Sensors):
             left_up, right_down = pred.get_coords()
             print("debug: ", left_up, right_down)
             color = pred.get_color()
+            
+            white_color = (255, 255, 255)  # White color in BGR
+            frame = cv2.putText(frame, str(pred.confidence), left_up, cv2.FONT_HERSHEY_SIMPLEX, 1, white_color, 2)
             frame = cv2.rectangle(frame, left_up, right_down, color, 2)
 
         return frame
