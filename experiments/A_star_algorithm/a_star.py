@@ -2,6 +2,7 @@ import cv2
 import heapq
 from time import time
 import math
+from math import floor, ceil
 import matplotlib.pyplot as plt
 from typing import List
 
@@ -40,7 +41,7 @@ class AStarPath:
         self.path = self.get_path()
     @staticmethod
     def calc_heuristic(num1, num2):
-        weight = 10.0
+        weight = 3.0
         return weight * (abs(num1.x - num2.x) + abs(num1.y - num2.y))    
 
     def calc_grid_position(self, idx, p):
@@ -76,15 +77,22 @@ class AStarPath:
         self.x_width = round((self.x_max - self.x_min) / self.grid_size)
         self.y_width = round((self.y_max - self.y_min) / self.grid_size)
         self.obstacle_pos = [[False for i in range(self.y_width)] for i in range(self.x_width)]
-        for idx_x in range(self.x_width):
-            x = self.calc_grid_position(idx_x, self.x_min)
-            for idx_y in range(self.y_width):
-                y = self.calc_grid_position(idx_y, self.y_min)
-                for idx_x_obstacle, idx_y_obstacle in zip(x_obstacle, y_obstacle):
+        DELTA = ceil(self.robot_radius / self.grid_size) + 3
+
+        for idx_x_obstacle, idx_y_obstacle in zip(x_obstacle, y_obstacle):
+            x_norm = int((idx_x_obstacle - self.x_min) // self.grid_size)
+            y_norm = int((idx_y_obstacle - self.y_min) // self.grid_size)
+            for idx_x in range(x_norm - DELTA, x_norm + DELTA):
+                x = self.calc_grid_position(idx_x, self.x_min)
+                if (not (0 <= idx_x < self.x_width)):
+                    continue
+                for idx_y in range(y_norm - DELTA, y_norm + DELTA):
+                    if not (0 <= idx_y < self.y_width):
+                        continue
+                    y = self.calc_grid_position(idx_y, self.y_min)
                     d = math.sqrt((idx_x_obstacle - x) ** 2 + (idx_y_obstacle - y) ** 2)
                     if d <= self.robot_radius:
                         self.obstacle_pos[idx_x][idx_y] = True
-                        break
 
     @staticmethod
     def get_path():
@@ -171,11 +179,11 @@ class AStarPath:
 
 def main():
     start_x = 30
-    start_y = 30
-    end_x = 175
-    end_y = 125
-    grid_size = 3.0
-    robot_radius = 4.0
+    start_y = 20
+    end_x = 165
+    end_y = 140
+    grid_size = 4.0
+    robot_radius = 10.0
 
     image = cv2.imread('output_frame_0089_fixed.png')
     image = cv2.resize(image, (200, 155))
@@ -197,11 +205,10 @@ def main():
         plt.axis("equal")
     slow = time()
     a_star = AStarPath(robot_radius, grid_size, x_obstacle, y_obstacle)
+    print(f"Init time:", time() - slow)
     start = time()
     x_out_path, y_out_path = a_star.a_star_search(start_x, start_y, end_x, end_y)
-    end = time()
-    print(end - start)
-    print(end - slow)
+    print(f"Search time:", time() - start)
 
     if show_animation:
         plt.plot(x_out_path, y_out_path, "r")
