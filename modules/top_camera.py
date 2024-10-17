@@ -46,7 +46,7 @@ class TopCamera(BaseCamera):
     @staticmethod
     def detection_borders(frame: np.array) -> str:
         original_frame = cv2.medianBlur(frame, 5)
-        original_frame = original_frame[100:950, 300:1400]
+        original_frame = original_frame[100:900, 400:1300]
 
         grey_frame = cv2.cvtColor(original_frame, cv2.COLOR_BGR2GRAY)
         # black_frame = apply_binarization(original_frame, (0, 0, 0), (255, 255, 40))
@@ -55,7 +55,7 @@ class TopCamera(BaseCamera):
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
         frame_morph = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, kernel, 1)
 
-        edges = cv2.Canny(frame, 0, 250)
+        edges = cv2.Canny(frame_morph, 0, 250)
         contours, hierarchy = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         res = []
@@ -63,12 +63,11 @@ class TopCamera(BaseCamera):
             x, y, w, h = cv2.boundingRect(c)
             if w * h > 120_000:
                 res.append((w, h))
-                frame_morph = cv2.rectangle(frame_morph, (x, y), (x + w, y + h), (0, 255, 255), 2)
-        while True:
-            cv2.imshow("red_frame", frame_morph)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
+                # frame_morph = cv2.rectangle(frame_morph, (x, y), (x + w, y + h), (0, 255, 255), 2)
+        # while True:
+        #     cv2.imshow("red_frame", frame_morph)
+        #     if cv2.waitKey(1) & 0xFF == ord('q'):
+        #         break
 
         res.sort(key=lambda i: i[0] * i[1], reverse=True)
         if res[0][0] > res[0][1]:
