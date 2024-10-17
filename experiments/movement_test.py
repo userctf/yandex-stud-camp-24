@@ -20,11 +20,10 @@ print(f"Соединение с {host}:{port}")
 s.connect((host, port))
 move = Move(s.dup())
 
+x_path = [0, -90, -140]
+y_path = [90, 130, 220]
 
-for i in range(6):
-    #move.turn_deg(30)
-    move.turn_right(0.27)
-    time.sleep(1.5)
+move.move_along_path(x_path, y_path)
 
 s.close()
 print("Соединение закрыто")
