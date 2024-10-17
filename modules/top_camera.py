@@ -1,4 +1,4 @@
-from base_camera import BaseCamera, Prediction
+from modules.base_camera import BaseCamera, Prediction
 import cv2
 import numpy as np
 
@@ -43,7 +43,8 @@ class TopCamera(BaseCamera):
         # print('Undistorted image written to: %s' % path_to_res)
         return dst
 
-    def detection_borders(self, frame: np.array) -> str:
+    @staticmethod
+    def detection_borders(frame: np.array) -> str:
         original_frame = cv2.medianBlur(frame, 5)
         original_frame = original_frame[100:950, 300:1400]
 
@@ -63,9 +64,22 @@ class TopCamera(BaseCamera):
             if w * h > 120_000:
                 res.append((w, h))
                 frame_morph = cv2.rectangle(frame_morph, (x, y), (x + w, y + h), (0, 255, 255), 2)
+        while True:
+            cv2.imshow("red_frame", frame_morph)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
 
         res.sort(key=lambda i: i[0] * i[1], reverse=True)
         if res[0][0] > res[0][1]:
             return "Top/Bottom"
         else:
             return "Left/Right"
+
+
+if __name__ == '__main__':
+    camera = TopCamera('modules/video/Left_1.avi', 'detecting_objects-ngs0l/1', api_key="d6bnjs5HORwCF1APwuBX")
+    img = cv2.imread("C:\\Users\\alexk\OneDrive\Documents\Studcamp-Yandex-2024\\right_output\output_frame_0016_fixed.png")
+    print(camera.detection_borders(img))
+
+
