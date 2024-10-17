@@ -6,9 +6,6 @@ import glob
 from matplotlib import pyplot as plt
 import os
 
-img_names_undistort = [img for img in glob.glob("top_images/lc*.png")]
-new_path = "/Users/rattysed/PycharmProjects/yandex-stud-camp-24/experiments/projection/out/"
-
 # camera_matrix = np.array([[713.055456, 0., 936.55387964],
 #                           [0., 714.19333345, 594.33880656],
 #                           [0., 0., 1., ]])
@@ -36,17 +33,32 @@ left_matrix = np.array([[850.07, 0., 929.22],
                         [0., 0., 1.]])
 
 left_dist_coefs = np.array([-0.2, 0.05, 0, 0, 0])
-camera_matrix = left_matrix
-dist_coefs = left_dist_coefs
 
-i = 0
+def main():
+    img_names_undistort = [img for img in glob.glob("top_images/lc*.png")]
+    new_path = "/Users/rattysed/PycharmProjects/yandex-stud-camp-24/experiments/projection/out/"
 
-# for img_found in img_names_undistort:
-while i < len(img_names_undistort):
-    img = cv2.imread(img_names_undistort[i])
+    i = 0
+    # for img_found in img_names_undistort:
+    while i < len(img_names_undistort):
+        path_to_img = img_names_undistort[i]
+        
+        name = img_names_undistort[i].split("/")
+        name = name[-1].split(".")
+        name = name[0]
+        path_to_res = new_path + name + '.jpg'
+
+        fix(path_to_img, path_to_res)
+        i = i + 1
+
+def fix(path_to_img: str, path_to_res: str, isLeft: bool):
+    img = cv2.imread(path_to_img)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     h, w = img.shape[:2]
+    camera_matrix = left_matrix if isLeft else right_matrix3
+    dist_coefs = left_dist_coefs if isLeft else right_dist_coefs3
+    
     newcameramtx, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, dist_coefs, (w, h), 1, (w, h))
 
     dst = cv2.undistort(img, camera_matrix, dist_coefs, None, newcameramtx)
@@ -57,12 +69,12 @@ while i < len(img_names_undistort):
     x, y, w, h = roi
     dst = dst[y - 20:y + h, x:x + w]
 
-    name = img_names_undistort[i].split("/")
-    name = name[-1].split(".")
-    name = name[0]
-    full_name = new_path + name + '.jpg'
-
-    # outfile = img_names_undistort + '_undistorte.png'
-    print('Undistorted image written to: %s' % full_name)
-    cv2.imwrite(full_name, dst)
-    i = i + 1
+    print('Undistorted image written to: %s' % path_to_res)
+    cv2.imwrite(path_to_res, dst)
+    
+    
+if __name__ == "__main__":
+    # main()
+    img_names_undistort = list(glob.glob("left_input/*.png"))
+    for img in img_names_undistort:
+        fix(img, img[:-4] + "_fixed.png", True)
