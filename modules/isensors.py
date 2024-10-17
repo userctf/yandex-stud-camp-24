@@ -83,6 +83,7 @@ class ISensors(Sensors):
             distance = self.get_len_to(ObjectType.CUBE)
             if distance == -1:
                 move.go_sm(-5)
+                sleep(0.5)
                 continue
 
             x,y = distance
@@ -90,12 +91,12 @@ class ISensors(Sensors):
             print(f"Distance im mm: x{x}, y{y}")
 
             # Too close: robot will not be able to grab the object
-            if y < 150:
-                move.go_sm(-10)
+            if y < 120:
+                move.go_sm(-3)
                 continue
 
             # Let's grab it
-            if y < 220 and abs(angle) < 10:
+            if y < 220 and abs(angle) < 5:
                 arm = Arm(s)
                 arm.grab(y + 20)
                 return
@@ -108,7 +109,7 @@ class ISensors(Sensors):
             # Move towards object
             move.go_sm(min(115, y//20))
             print("len to box:", distance)
-            sleep(2)
+            sleep(0.5)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         
