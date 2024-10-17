@@ -69,17 +69,16 @@ class BaseCamera:
         self.model = get_model(model_id=neural_model, api_key=api_key)
         
     # get photo from stream
-    def get_photo(self) -> numpy.ndarray:
-        jpg = self.__read_jpg_from_stream(self.stream_url)
-        img = cv2.imdecode(numpy.frombuffer(jpg, dtype=numpy.uint8), cv2.IMREAD_COLOR)
-        return img
+    def get_photo(self) -> numpy.ndarray: # todo move cap to self to increase speed?
+        cap = cv2.VideoCapture(self.stream_url)
+        ret, frame = cap.read()
+        if not ret:
+            print("Error while reading frame")
+        cap.release()
+        return frame
                     
     def __read_jpg_from_stream(self, url: str) -> bytes:
-        try:
-            stream = requests.get(url, stream=True)
-        except:
-            print(f'[ERROR] Can not connect to camera: {url}')
-            return bytes(0x00)
+        stream = requests.get(url, stream=True)
         
         read_bytes = bytes()
         for chunk in stream.iter_content(chunk_size=1024):

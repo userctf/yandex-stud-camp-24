@@ -1,6 +1,7 @@
-from modules.base_camera import BaseCamera, Prediction
+from base_camera import BaseCamera, Prediction
 import cv2
 import numpy as np
+from typing import Tuple, List
 
 
 class TopCamera(BaseCamera):
@@ -44,41 +45,88 @@ class TopCamera(BaseCamera):
         return dst
 
     @staticmethod
-    def detection_borders(frame: np.array) -> str:
-        original_frame = cv2.medianBlur(frame, 5)
-        original_frame = original_frame[100:900, 400:1300]
+    def get_all_contours(frame: np.array) -> List:        
+        grey_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        blured_frame = cv2.medianBlur(grey_frame, 5)
 
-        grey_frame = cv2.cvtColor(original_frame, cv2.COLOR_BGR2GRAY)
-        # black_frame = apply_binarization(original_frame, (0, 0, 0), (255, 255, 40))
-        _, binary_image = cv2.threshold(grey_frame, 90, 250, cv2.THRESH_BINARY)
+        _, binary_image = cv2.threshold(blured_frame, 90, 250, cv2.THRESH_BINARY)
 
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
         frame_morph = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, kernel, 1)
 
         edges = cv2.Canny(frame_morph, 0, 250)
         contours, hierarchy = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        return contours
+        
+    def get_game_arena_size(self, frame: np.array) -> (int, int, int, int):
+        img = self.fix_eye(img, True)[0:1400, 100:1600]
+        contours = TopCamera.get_all_contours(img)
+        area_res = []
+        
+        for c in contours:
+            # x y w h
+            area_res.append(cv2.boundingRect(c))
+        
+        ans = sorted(area_res, key=lambda box: box[2] * box[3], reverse=True)[0]
+        ans[2] += 100
+        return ans
 
+    
+        # while True:
+        #     img = self.get_photo()
+        #     img = self.fix_eye(img, True)[0:1400, 100:1600]
+            
+        #     contours = TopCamera.get_all_contours(img)
+            
+        #     for c in contours:
+        #         x, y, w, h = cv2.boundingRect(c)
+        #         if w * h > 110_000:
+        #             img = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 255), 2)
+        #     cv2.imshow('Frame with Box', img)
+            
+        #     if cv2.waitKey(1) & 0xFF == ord('q'):
+        #         break
+        
+        # cv2.destroyAllWindows()
+
+    
+    
+    @staticmethod
+    def detection_borders(frame: np.array) -> str:
+        contours = TopCamera.get_all_contours(frame, (100, 900, 400, 1300))
         res = []
         for c in contours:
             x, y, w, h = cv2.boundingRect(c)
-            if w * h > 120_000:
+            if w * h > 120_000: # BIG_NUMBER
                 res.append((w, h))
-                # frame_morph = cv2.rectangle(frame_morph, (x, y), (x + w, y + h), (0, 255, 255), 2)
-        # while True:
-        #     cv2.imshow("red_frame", frame_morph)
-        #     if cv2.waitKey(1) & 0xFF == ord('q'):
-        #         break
-
-        res.sort(key=lambda i: i[0] * i[1], reverse=True)
+                
+        res.sort(key=lambda i: i[0] * i[1], reverse=True) # find the biggest by area
         if res[0][0] > res[0][1]:
             return "Top/Bottom"
         else:
             return "Left/Right"
+        
+    # test
+    def test(self):
+        while True:
+            img = self.get_photo()
+            img = self.fix_eye(img, True)
+            
+            p = self._predict(img)
+            self._write_on_img(img, p)
+            
+            cv2.imshow('Frame with Box', img)
+            
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        
+        cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
-    camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1/1", 'detecting_objects-ngs0l/1', api_key="d6bnjs5HORwCF1APwuBX")
+    camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ngs0l/1', api_key="d6bnjs5HORwCF1APwuBX")
     # img = cv2.imread("C:\\Users\\alexk\OneDrive\Documents\Studcamp-Yandex-2024\\right_output\output_frame_0016_fixed.png")
     # print(camera.detection_borders(img))
-    img = camera.get_photo()
-    print(camera.detection_borders(img))
+    # img = camera.get_photo()
+    # print(camera.detection_borders(img))
+    camera.get_game_arena_size(None)
