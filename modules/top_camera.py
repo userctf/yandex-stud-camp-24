@@ -1,4 +1,4 @@
-from base_camera import BaseCamera
+from base_camera import BaseCamera, Prediction
 import cv2
 import numpy as np
 
@@ -18,22 +18,8 @@ class TopCamera(BaseCamera):
 
     def fix_eye_by_path(self, path_to_img: str, path_to_res: str, is_left: bool):
         img = cv2.imread(path_to_img)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-        h, w = img.shape[:2]
-        camera_matrix = self.left_matrix if is_left else self.right_matrix
-        dist_coefs = self.left_dist_coefs if is_left else self.right_dist_coefs
-
-        new_camera_mtx, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, dist_coefs, (w, h), 1, (w, h))
-
-        dst = cv2.undistort(img, camera_matrix, dist_coefs, None, new_camera_mtx)
-
-        dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
-
-        # crop and save the image
-        x, y, w, h = roi
-        dst = dst[y - 20:y + h, x:x + w]
-
+        dst = self.fix_eye(img, is_left)
         # print('Undistorted image written to: %s' % path_to_res)
         cv2.imwrite(path_to_res, dst)
 
@@ -83,5 +69,3 @@ class TopCamera(BaseCamera):
             return "Top/Bottom"
         else:
             return "Left/Right"
-
-
