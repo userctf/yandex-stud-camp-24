@@ -77,8 +77,8 @@ class TopCamera(BaseCamera):
 
 
 if __name__ == '__main__':
-    camera = TopCamera('modules/video/Left_1.avi', 'detecting_objects-ngs0l/1', api_key="d6bnjs5HORwCF1APwuBX")
-    img = cv2.imread("C:\\Users\\alexk\OneDrive\Documents\Studcamp-Yandex-2024\\right_output\output_frame_0016_fixed.png")
+    camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1/1", 'detecting_objects-ngs0l/1', api_key="d6bnjs5HORwCF1APwuBX")
+    # img = cv2.imread("C:\\Users\\alexk\OneDrive\Documents\Studcamp-Yandex-2024\\right_output\output_frame_0016_fixed.png")
+    # print(camera.detection_borders(img))
+    img = camera.get_photo()
     print(camera.detection_borders(img))
-
-
