@@ -187,22 +187,22 @@ def status():
 		if cfg.LOOPS > 30:   # 更新函数是每隔0.1秒进入一次，这里等于0.3秒检测车子方向并根据车子方向开启对应转向灯
 			if cfg.LIGHT_STATUS == cfg.TURN_FORWARD:
 				cfg.LIGHT_LAST_STATUS = cfg.LIGHT_STATUS	 # 没进入控制方向时都讲此次状态赋值给上一次状态
-				car_light.forward_turn_light()
+				# car_light.forward_turn_light()
 			elif cfg.LIGHT_STATUS == cfg.TURN_BACK:
 				cfg.LIGHT_LAST_STATUS = cfg.LIGHT_STATUS
-				car_light.back_turn_light()
+				# car_light.back_turn_light()
 			elif cfg.LIGHT_STATUS == cfg.TURN_LEFT:
 				cfg.LIGHT_LAST_STATUS = cfg.LIGHT_STATUS
-				car_light.left_turn_light()
+				# car_light.left_turn_light()
 			elif cfg.LIGHT_STATUS == cfg.TURN_RIGHT:
 				cfg.LIGHT_LAST_STATUS = cfg.LIGHT_STATUS
-				car_light.right_turn_light()
+				# car_light.right_turn_light()
 			elif cfg.LIGHT_STATUS == cfg.STOP and cfg.LIGHT_LAST_STATUS != cfg.LIGHT_STATUS:	 # 让STOP灯只在一直STOP情况下只执行一次
 				cfg.LIGHT_LAST_STATUS = cfg.LIGHT_STATUS
 				if cfg.LIGHT_OPEN_STATUS == 1:
-					car_light.open_light()
+					# car_light.open_light()
 				else:
-					car_light.close_light()
+					# car_light.close_light()
 		if cfg.LOOPS > 100:  		# 定时器设定的是0.01秒进入一次，大于100表明自增了100次即1秒时间，一些不需要更新太快的数据显示函数可放这里
 			cfg.LOOPS = 0			# 清除LOOPS
 			power.show_vol()    	# recalc power status
