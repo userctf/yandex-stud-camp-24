@@ -1,3 +1,4 @@
+import math
 from module import BaseModule
 from sensors import Sensors
 
@@ -8,6 +9,8 @@ import cv2
 import socket
 from enum import Enum
 from typing import Tuple, List
+from move import Move
+from arm import Arm
 
 
 class ObjectType(Enum):
@@ -69,14 +72,43 @@ class ISensors(Sensors):
         super().__init__(s.dup(), onboard_stream_url, upper_stream_url)    
         self.model = get_model(model_id="robot_camera_detector/1", api_key=api_key)
         
-    def test(self):
+    def test(self, s: socket.socket):
+        move = Move(s)
         while True:
             img = self.get_photo(is_onboard_cap=True)
             p = self.__predict(img)
             frame = self._write_on_img(img, p)
             
             cv2.imshow('Frame with Box', img)
-            print("len to box:", self.get_len_to(ObjectType.CUBE))
+            distance = self.get_len_to(ObjectType.CUBE)
+            if distance == -1:
+                move.go_sm(-5)
+                continue
+
+            x,y = distance
+            angle = self._rotate_to_object(x, y)
+            print(f"Distance im mm: x{x}, y{y}")
+
+            # Too close: robot will not be able to grab the object
+            if y < 150:
+                move.go_sm(-10)
+                continue
+
+            # Let's grab it
+            if y < 220 and abs(angle) < 10:
+                arm = Arm(s)
+                arm.grab(y + 20)
+                return
+            
+            # Turn towards object
+            move.turn_deg(int(angle * 0.5))
+            #Recalc dist after turn
+            distance = self.get_len_to(ObjectType.CUBE)
+            x,y = distance
+            # Move towards object
+            move.go_sm(min(115, y//20))
+            print("len to box:", distance)
+            sleep(2)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         
@@ -112,6 +144,15 @@ class ISensors(Sensors):
                                     [-3.55573093e-01,  1.98806608e+01, -1.34064097e+03],
                                     [-1.80493956e-04,  6.39010156e-03,  1.00000000e+00]])
         return transform_matrix
+
+    def _rotate_to_object(self, x_obj: int, y_obj: int) -> int:
+        x_center = 35
+        y_center = -140
+        lenght = math.sqrt((x_obj - x_center)**2 + (y_obj - y_center)**2)
+        gamma = math.asin(abs(x_center) / lenght)
+        alpha = math.atan2(x_obj - x_center, y_obj - y_center)
+        rotate_angle = alpha + gamma
+        return int(rotate_angle * 180 / math.pi + 0.5)
     
     def __find_projection_coord(self, x_src: int, y_src: int, proj_matrix: numpy.array) -> tuple[int, int]:
         x_dst = int((proj_matrix[0][0] * x_src + proj_matrix[0][1] * y_src + proj_matrix[0][2]) /
@@ -164,7 +205,7 @@ print(f"Соединение с {host}:{port}")
 # Устанавливаем соединение
 s.connect((host, port))      
 S = ISensors(s, "http://192.168.2.106:8080/?action=stream", None, "uGu8WU7fJgR8qflCGaqP")
-S.test()
-print("len to box:", self.get_len_to(ObjectType.CUBE))
+S.test(s)
+# print("len to box:", self.get_len_to(ObjectType.CUBE))
 
 s.close()
