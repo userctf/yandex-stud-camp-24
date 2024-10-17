@@ -311,17 +311,25 @@ class Socket:
 				beep.tone(beep.tone_all[cfg.TUNE][beet3 + 7], 0.5)
 
 		elif buffer[0] == 0x42:
-			data = {
-				"IR_L": gpio.digital_read(gpio.IR_L),
-				"IR_R": gpio.digital_read(gpio.IR_R),
-				"IR_M": gpio.digital_read(gpio.IR_M),
-
-				"IRF_R": gpio.digital_read(gpio.IRF_R),
-				"IRF_L": gpio.digital_read(gpio.IRF_L),
-
-				"dist": ultrasonic.get_distance()
-			}
-			self.sendbuf(data.__str__().encode("utf-8"))
+			sensor_id = buffer[1]
+			data = []
+			if sensor_id == 0x00:
+				data = [
+					gpio.digital_read(gpio.IR_L), # IR_L
+					gpio.digital_read(gpio.IR_R), # IR_R
+					gpio.digital_read(gpio.IR_M), # IR_M					
+				]
+			elif sensor_id == 0x01:
+				data = [
+					gpio.digital_read(gpio.IRF_R), #IRF_R
+					gpio.digital_read(gpio.IRF_L), #IRF_L				
+				]
+			elif sensor_id == 0x02:
+				data = [
+					ultrasonic.get_distance() # dist			
+				]
+	
+			self.sendbuf("\n".join([str(i) for i in data]).encode("utf-8"))
 
 		elif buffer[0] == 0x43:
 			color_id = int(buffer[1])

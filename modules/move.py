@@ -115,3 +115,4 @@ class Move(BaseModule):
             self.turn_right(angle_to_time(ANGLES_RIGHT, TIMES_RIGHT, angle))
         else:
             self.turn_left(angle_to_time(ANGLES_RIGHT, TIMES_RIGHT, -angle))
+
