@@ -22,7 +22,7 @@ CAMERA_MOD_SET = {'camera_normal': 0, 'camera_linepatrol': 1, 'facefollow':2, 'c
 ANGLE_MAX = 170  			# 舵机角度上限值，防止舵机卡死，可设置小于180的数值
 ANGLE_MIN = 15  			# 舵机角度下限值，防止舵机卡死，可设置大于0的数值
 CAPTURE_ANGLE_MAX = 80
-CAPTURE_ANGLE_MIN = 53
+CAPTURE_ANGLE_MIN = 20
 
 VOICE_MOD = 0
 VOICE_MOD_SET = {'normal': 0, 'openlight': 1, 'closelight': 2, 'forward': 3, 'back': 4, 'left': 5,

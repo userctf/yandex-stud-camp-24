@@ -1,6 +1,6 @@
 import math
 import socket
-from module import BaseModule
+from modules.module import BaseModule
 
 SLEEP_TIME = 0.4
 
@@ -79,7 +79,7 @@ class Arm(BaseModule):
 
     def open_hand(self):
         state = self.state.copy()
-        state[3] = 50
+        state[3] = 20
         self._set_state(state)
 
     def rotate_hand_vertical(self):
