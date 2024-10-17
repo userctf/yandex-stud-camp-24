@@ -60,6 +60,7 @@ class Prediction:
         else:
             print("[ERROR] Can not find name ", name)
 
+
 class BaseCamera:
     CONFIDENCE = 0.5
     
