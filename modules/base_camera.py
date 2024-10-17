@@ -31,7 +31,7 @@ class Prediction:
             int(self.center[1] + 0.5 * self.size[1])
         )
         
-        return (left_top, right_bottom)
+        return left_top, right_bottom
     
     def get_color(self) -> Tuple:
         if self.object_type == ObjectType.BALL:
@@ -78,7 +78,7 @@ class BaseCamera:
             stream = requests.get(url, stream=True)
         except:
             print(f'[ERROR] Can not connect to camera: {url}')
-            return 0x00
+            return bytes(0x00)
         
         read_bytes = bytes()
         for chunk in stream.iter_content(chunk_size=1024):
@@ -98,7 +98,7 @@ class BaseCamera:
             color = pred.get_color()
             
             white_color = (255, 255, 255)  # White color in BGR
-            cv2.putText(frame, pred.name + ":" +str(round(pred.confidence, 3)), (left_up[0], left_up[1] - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, white_color, 2)
+            cv2.putText(frame, pred.name + ":" + str(round(pred.confidence, 3)), (left_up[0], left_up[1] - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, white_color, 2)
             cv2.rectangle(frame, left_up, right_down, color, 2)
     
     # working with neural model
