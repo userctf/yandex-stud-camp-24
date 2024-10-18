@@ -67,14 +67,13 @@ class BaseCamera:
     def __init__(self, stream_url: str, neural_model: str, api_key: str):
         self.stream_url = stream_url
         self.model = get_model(model_id=neural_model, api_key=api_key)
+        self.cap = cv2.VideoCapture(stream_url)
         
     # get photo from stream
     def get_photo(self) -> numpy.ndarray: # todo move cap to self to increase speed?
-        cap = cv2.VideoCapture(self.stream_url)
-        ret, frame = cap.read()
+        ret, frame = self.cap.read()
         if not ret:
-            print("Error while reading frame")
-        cap.release()
+            print("[Error] while reading frame")
         return frame
                     
     def __read_jpg_from_stream(self, url: str) -> bytes:
@@ -111,6 +110,9 @@ class BaseCamera:
     def _predict(self, image: numpy.ndarray) -> List[Prediction]:
         results = self.model.infer(image, confidence=self.CONFIDENCE)[0]
         return [Prediction(pred) for pred in results.predictions]
+    
+    def __del__(self):
+        self.cap.release()
     
     # test
     def test(self):

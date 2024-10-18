@@ -1,6 +1,6 @@
 import math
 from module import BaseModule
-from base_camera import BaseCamera
+from base_camera import BaseCamera, Prediction, ObjectType
 
 from time import sleep
 from inference import get_model
@@ -11,59 +11,6 @@ from enum import Enum
 from typing import Tuple, List
 from move import Move
 from arm import Arm
-
-
-class ObjectType(Enum):
-    CUBE = 0
-    BALL = 1
-    BASKET = 2
-    BUTTONS = 3
-
-
-class Prediction:
-    def __init__(self, prediction):
-        # print("debug:", prediction)
-        self.class_name: str = prediction.class_name
-        self.object_type: ObjectType = self.__get_type(prediction.class_name)
-        self.confidence: float = prediction.confidence
-        self.center: Tuple[float, float] = (prediction.x, prediction.y)
-        self.size: Tuple[float, float] = (prediction.width, prediction.height)
-        
-    def get_coords(self) -> Tuple:
-        left_top = (
-            int(self.center[0] - 0.5 * self.size[0]), 
-            int(self.center[1] - 0.5 * self.size[1])
-        )
-        # left_bottom = 
-        right_bottom = (
-            int(self.center[0] + 0.5 * self.size[0]), 
-            int(self.center[1] + 0.5 * self.size[1])
-        )
-        # right_top = 
-        
-        return left_top, right_bottom
-    
-    def get_color(self) -> Tuple:
-        if self.object_type == ObjectType.BALL:
-            return 0, 115, 255 # orange
-        elif self.object_type == ObjectType.CUBE:
-            return 0, 10, 255 # red
-        elif self.object_type == ObjectType.BASKET:
-            return 28, 28, 28 # black
-        elif self.object_type == ObjectType.BUTTONS:
-            return 94, 81, 81 # grey
-
-    def __get_type(self, name: str) -> ObjectType:
-        if name == "red cube":
-            return ObjectType.CUBE
-        elif name == "orange ball":
-            return ObjectType.BALL
-        elif name == "grey basket":
-            return ObjectType.BASKET
-        elif name == "junction box":
-            return ObjectType.BUTTONS
-        else:
-            print("[ERROR] Can not find name ", name)
 
 
 class CameraOnBoard(BaseCamera):
@@ -81,35 +28,37 @@ class CameraOnBoard(BaseCamera):
             frame = self._write_on_img(img, p)
             
             cv2.imshow('Frame with Box', img)
-            distance = self.get_len_to(ObjectType.CUBE)
-            if distance == (-1, -1):
-                move.go_sm(-5)
-                continue
-
-            x, y = distance
-            angle = self._rotate_to_object(x_obj=x, y_obj=y)
+            x, y = self.get_len_to(ObjectType.CUBE)
             print(f"Distance im mm: x{x}, y{y}")
-
-            # Too close: robot will not be able to grab the object
-            if y < 150:
-                move.go_sm(-10)
-                continue
-
-            # Let's grab it
-            if y < 220 and abs(angle) < 10:
-                arm = Arm(s)
-                arm.grab(y + 20)
-                return
             
-            # Turn towards object
-            move.turn_deg(int(angle * 0.5))
-            # Recalc dist after turn
-            distance = self.get_len_to(ObjectType.CUBE)
-            x,y = distance
-            # Move towards object
-            move.go_sm(min(115, y//20))
-            print("len to box:", distance)
-            sleep(2)
+            # if (x, y) == (-1, -1):
+            #     # Try to find it
+            #     #  TODO
+            #     move.go_sm(-10)
+            #     move.turn_deg(-10)
+            #     continue
+            
+            # # Too close: robot will not be able to grab the object
+            # if y < 120: # MAGIC NUMBER
+            #     move.go_sm(-10)
+            #     continue
+
+            # # Let's grab it
+            # if y < 220 and abs(x) < 40: # MAGIC NUMBER
+            #     arm = Arm(s)
+            #     arm.grab(y + 20)
+            #     return
+
+            # # Turn towards object
+            # angle = self._rotate_to_object(x_obj=x, y_obj=y)
+            # move.turn_deg(angle)            
+           
+            # # Recalc dist after turn
+            # x, y = self.get_len_to(ObjectType.CUBE)
+            
+            # # Move towards object
+            # move.go_sm(y//20)
+            
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         
@@ -124,6 +73,7 @@ class CameraOnBoard(BaseCamera):
         coords = most_relevant.get_coords()
         obj_x = (coords[0][0] + coords[1][0]) // 2
         obj_y = coords[1][1]
+        print("Point: ", obj_x, obj_y)
         return self.__get_mm_by_coords(obj_x, obj_y)
         
     def __get_mm_by_coords(self, x: int, y: int) -> (int, int):
@@ -195,18 +145,18 @@ class CameraOnBoard(BaseCamera):
         return [Prediction(pred) for pred in results.predictions]
 
 
-host = "192.168.2.106"
+if __name__ == "__main__":
+    host = "192.168.2.106"
+    port = 2055
 
-port = 2055
+    # Создаем сокет
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print(f"Соединение с {host}:{port}")
 
-# Создаем сокет
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print(f"Соединение с {host}:{port}")
+    # Устанавливаем соединение
+    s.connect((host, port))      
+    S = CameraOnBoard("http://192.168.2.106:8080/?action=stream", "uGu8WU7fJgR8qflCGaqP")
+    S.test_cob(s)
+    # print("len to box:", self.get_len_to(ObjectType.CUBE))
 
-# Устанавливаем соединение
-s.connect((host, port))      
-S = CameraOnBoard("http://192.168.2.106:8080/?action=stream", "uGu8WU7fJgR8qflCGaqP")
-S.test_cob(s)
-# print("len to box:", self.get_len_to(ObjectType.CUBE))
-
-s.close()
+    s.close()

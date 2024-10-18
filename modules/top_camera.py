@@ -2,7 +2,7 @@ from base_camera import BaseCamera, Prediction
 import cv2
 import numpy as np
 from typing import Tuple, List
-
+import cProfile
 
 class TopCamera(BaseCamera):
     left_matrix = np.array([[850.07, 0., 929.22],
@@ -109,24 +109,32 @@ class TopCamera(BaseCamera):
     # test
     def test(self):
         while True:
-            img = self.get_photo()
-            img = self.fix_eye(img, True)
-            
-            p = self._predict(img)
-            self._write_on_img(img, p)
-            
-            cv2.imshow('Frame with Box', img)
-            
+            # cProfile.run('self.operate_frame()')
+            self.operate_frame()
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         
         cv2.destroyAllWindows()
+    
+    def operate_frame(self):
+        img = self.get_photo()
+        img = self.fix_eye(img, True)
+        
+        crop = self.get_game_arena_size(img)
+        img = img[crop[0]:crop[1], crop[2]:crop[3]]
+        
+        p = self._predict(img)
+        self._write_on_img(img, p)
+        
+        cv2.imshow('Frame with Box', img)
 
 
 if __name__ == '__main__':
-    camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ngs0l/1', api_key="d6bnjs5HORwCF1APwuBX")
+    camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1', api_key="d6bnjs5HORwCF1APwuBX")
     # img = cv2.imread("C:\\Users\\alexk\OneDrive\Documents\Studcamp-Yandex-2024\\right_output\output_frame_0016_fixed.png")
     # print(camera.detection_borders(img))
     # img = camera.get_photo()
     # print(camera.detection_borders(img))
-    camera.get_game_arena_size(None)
+    # camera.get_game_arena_size(None)
+    camera.test()
+    # cProfile.run('camera.operate_frame()')
