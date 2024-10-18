@@ -62,6 +62,7 @@ class Move(BaseModule):
     # 0 < duration in seconds < 2.55
     def _move(self, direction : Dir, duration : float):
         if (0 < duration and duration < 2.55):
+            time_moving = 0
             msg = BASE_MESSAGE.copy()
             msg[1] = direction.value
             msg[2] = int(duration * 100)
@@ -71,14 +72,33 @@ class Move(BaseModule):
                 if not response:
                     print('No response for > socket.timeout seconds')
                     break
-                if response.decode('utf-8') == STOP_MOVING_RESPONSE:
-                    print('Got stop moving response')
+                response_data = response.decode('utf-8').split('; ')
+                if response_data[0] == STOP_MOVING_RESPONSE:
+                    time_moving = float(response_data[1])
+                    print(f'Got stop moving response after {time_moving} seconds moving')
                     break
                 
                 time.sleep(0.01)
+
+            # update robot's state
+            if direction == Dir.FORWARD:
+                dist = self._time_to_dist(time_moving)
+                self.__x_cord += dist * math.cos(math.radians(self.__angle))
+                self.__y_cord += dist * math.sin(math.radians(self.__angle))
+            elif direction == Dir.BACK:
+                dist = self._time_to_dist(time_moving)
+                self.__x_cord -= dist * math.cos(math.radians(self.__angle))
+                self.__y_cord -= dist * math.sin(math.radians(self.__angle))
+            elif direction == Dir.RIGHT:
+                angle = self._time_to_angle(time_moving)
+                self.__angle = (self.__angle + angle) % 360
+            elif direction == Dir.LEFT:
+                angle = self._time_to_angle(time_moving)
+                self.__angle = (self.__angle - angle + 360) % 360
+
+            time.sleep(0.2)
         else:
             print('duration must be from 0 to 2.54')
-        time.sleep(0.2)
 
 
     @staticmethod
@@ -90,6 +110,16 @@ class Move(BaseModule):
     def _angle_to_time(angles, times, deg):
         piecewise_func = interp1d(angles, times, bounds_error=False, fill_value="extrapolate")
         return piecewise_func(deg)
+    
+    @staticmethod
+    def _time_to_dist(times, dists, sec):
+        piecewise_func = interp1d(times, dists, bounds_error=False, fill_value="extrapolate")
+        return piecewise_func(sec)
+    
+    @staticmethod
+    def _time_to_angle(angles, times, sec):
+        piecewise_func = interp1d(times, angles, bounds_error=False, fill_value="extrapolate")
+        return piecewise_func(sec)
     
 
     # -115 <= dist <= 115
@@ -150,17 +180,8 @@ class Move(BaseModule):
             # turn to next node
             if (new_angle != self.__angle):
                 self.turn_deg(new_angle - self.__angle)
-                time.sleep(2)
 
             # move to next node
             while dist > 0:
                 self.go_sm(min(dist, 110))
-                time.sleep(3)
                 dist -= min(dist, 110)
-            
-            
-
-            #update our state
-            self.__angle = new_angle
-            self.__x_cord = x_dest
-            self.__y_cord = y_dest
