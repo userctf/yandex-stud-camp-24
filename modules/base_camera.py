@@ -15,7 +15,8 @@ class ObjectType(Enum):
     GREEN_BASE = 5
     BTN_G_O = 6
     BTN_P_B = 7
-    
+    UNKNOWN = -1
+
 
 class Prediction:
     def __init__(self, prediction):
@@ -36,7 +37,7 @@ class Prediction:
         )
         
         return left_top, right_bottom
-    
+
     def get_color(self) -> Tuple:
         if self.object_type == ObjectType.BALL:
             return (0, 115, 255) # orange
@@ -69,6 +70,10 @@ class Prediction:
             return ObjectType.BTN_P_B
         else:
             print("[ERROR] Can not find name ", name)
+            return ObjectType.UNKNOWN
+
+    def __repr__(self):
+        return f" {self.get_coords()}: {self.name}"
 
 
 class BaseCamera:
@@ -81,14 +86,14 @@ class BaseCamera:
         print("[INFO] neural model loaded")
         self.cap = cv2.VideoCapture(stream_url)
         print("[INFO] video capturing started")
-        
+
     # get photo from stream
     def get_photo(self) -> numpy.ndarray:
         ret, frame = self.cap.read()
         if not ret:
             print("[ERROR] while reading frame")
         return frame
-        
+
     def _write_on_img(self, frame: numpy.ndarray, predictions: List[Prediction]):
         for pred in predictions:
             left_up, right_down = pred.get_coords()
@@ -105,7 +110,7 @@ class BaseCamera:
         correct_objects = filter(lambda predict: predict.object_type == object, found_objects)
         return sorted(correct_objects, key=lambda pred: pred.confidence, reverse=True)
                 
-    def _predict(self, frame: numpy.ndarray) -> List[Prediction]:
+    def predict(self, frame: numpy.ndarray) -> List[Prediction]:
         results = self.model.infer(frame, confidence=self.CONFIDENCE)[0]
         return [Prediction(pred) for pred in results.predictions]
     
@@ -116,7 +121,7 @@ class BaseCamera:
     def test(self):
         while True:
             img = self.get_photo()
-            p = self._predict(img)
+            p = self.predict(img)
             self._write_on_img(img, p)
             
             cv2.imshow('Frame with Box', img)

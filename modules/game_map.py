@@ -1,0 +1,2 @@
+class GameMap:
+    pass

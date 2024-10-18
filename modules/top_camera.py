@@ -9,8 +9,8 @@ class TopCamera(BaseCamera):
                             [0., 846.76, 575.28],
                             [0., 0., 1.]])
     right_matrix = np.array([[1182.719, 0., 927.03],
-                            [0., 1186.236, 609.52],
-                            [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+                             [0., 1186.236, 609.52],
+                             [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
     left_dist_coefs = np.array([-0.2, 0.05, 0, 0, 0])
     right_dist_coefs = np.array([-0.5, 0.3, 0, 0, 0])
 
@@ -36,7 +36,7 @@ class TopCamera(BaseCamera):
         return dst[y - 20:y + h, x:x + w]
 
     @staticmethod
-    def get_all_contours(frame: np.array) -> List:        
+    def get_all_contours(frame: np.array) -> List:
         grey_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         blured_frame = cv2.medianBlur(grey_frame, 5)
 
@@ -54,7 +54,7 @@ class TopCamera(BaseCamera):
         img = frame[0:1400, 100:1600] # crop to remove extra data
         contours = TopCamera.get_all_contours(img)
         area_res = []
-        
+
         for c in contours:
             # x y w h
             area_res.append(cv2.boundingRect(c))
@@ -74,15 +74,15 @@ class TopCamera(BaseCamera):
             box_y + PADDING_Y   :   box_y + box_h - 2 * PADDING_Y,
             box_x + PADDING_X   :   box_x + box_w - 2 * PADDING_X
         ] # crop to main rectangle
-                
+
         contours = TopCamera.get_all_contours(frame)
         res = []
         for c in contours:
             x, y, w, h = cv2.boundingRect(c)
-            if w * h > 120_000: # BIG_NUMBER
+            if w * h > 120_000:  # BIG_NUMBER
                 res.append((w, h))
-                
-        res.sort(key=lambda i: i[0] * i[1], reverse=True) # find the biggest by area
+
+        res.sort(key=lambda i: i[0] * i[1], reverse=True)  # find the biggest by area
         if res[0][0] > res[0][1]:
             return (True, "Top/Bottom")
         else:

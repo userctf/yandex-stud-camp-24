@@ -1,5 +1,9 @@
 import socket
 import time
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../modules')))
 from modules.arm import Arm
 
 host = "192.168.2.106"
@@ -47,8 +51,11 @@ arm = Arm(s.dup())
 # while True:
 #     arm.set_arm(150, 100)
 #     arm.set_arm(150, 200)
-arm.grab(100)
-arm.default()
+
+arm.grab(200, ball=True)
+# time.sleep(5)
+arm.release()
+
 
 
 
