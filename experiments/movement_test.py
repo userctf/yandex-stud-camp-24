@@ -18,12 +18,20 @@ print(f"Соединение с {host}:{port}")
 
 # Устанавливаем соединение
 s.connect((host, port))
+s.settimeout(3)
 move = Move(s.dup())
 
-x_path = [0, -90, -140]
-y_path = [90, 130, 220]
+# x_path = [0, -90, -140]
+# y_path = [90, 130, 220]
 
-move.move_along_path(x_path, y_path)
+# move.move_along_path(x_path, y_path)
+
+move.go_sm(50)
+time.sleep(1)
+move.turn_deg(80)
+time.sleep(1)
+move.go_sm(75)
+
 
 s.close()
 print("Соединение закрыто")
