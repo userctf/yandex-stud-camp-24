@@ -356,18 +356,21 @@ class Socket:
             go.back()
             time.sleep(duration)
             go.stop()
+            self.sendbuf('STOP_MOVING_RESPONSE'.encode('utf-8'))
 
         elif buffer[0] == 0x48:
             duration = buffer[1] / 100
             go.right()
             time.sleep(duration)
             go.stop()
+            self.sendbuf('STOP_MOVING_RESPONSE'.encode('utf-8'))
 
         elif buffer[0] == 0x47:
             duration = buffer[1] / 100
             go.left()
             time.sleep(duration)
             go.stop()
+            self.sendbuf('STOP_MOVING_RESPONSE'.encode('utf-8'))
 
         elif buffer == [0xef, 0xef, 0xee]:
             print("Heartbeat Packet!")
