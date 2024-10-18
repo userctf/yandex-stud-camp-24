@@ -107,7 +107,7 @@ class BaseCamera:
     def get_objects(self, frame: numpy.ndarray, object: ObjectType) -> List[Prediction]:
         found_objects = self.predict(frame)
         
-        correct_objects = filter(lambda predict: predict.object_type == object, found_objects)
+        correct_objects = filter(lambda predict: predict.object_type.value == object.value, found_objects)
         return sorted(correct_objects, key=lambda pred: pred.confidence, reverse=True)
                 
     def predict(self, frame: numpy.ndarray) -> List[Prediction]:

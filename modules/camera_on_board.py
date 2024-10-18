@@ -86,14 +86,19 @@ class CameraOnBoard(BaseCamera):
         # coords with respect to (0, 0) coord of arm
         x -= 600
         y = 2000 - y
-        mm = 105
-        pxl = 305
-        return int(x * mm / pxl) + 75, int(y * mm / pxl) + 110
+        mm = 1
+        pxl = 3
+        k = 32 / 515
+        b = 15 - k * 600
+        correction_of_y = int(k * y + b)
+        return int(x * mm / pxl) + 75, int(y * mm / pxl) + 85 + correction_of_y
 
     def __get_projection_matrix(self) -> numpy.array:
-        transform_matrix = numpy.array([[7.11620049e+00, 8.68669211e+00, -1.70901081e+03],
-                                        [-2.19522636e-01, 4.36212775e+01, -4.64586208e+03],
-                                        [-1.94267820e-04, 1.47179361e-02, 1.00000000e+00]])
+        # precalced (see algo in git ml/robot_projection.py)
+        transform_matrix = numpy.array([[5.03740648e+00, 6.51704073e+00, -1.01448878e+03],
+                                        [0.00000000e+00, 4.15627598e+01, -1.16375727e+03],
+                                        [0.00000000e+00, 1.08617346e-02, 1.00000000e+00]])
+
         return transform_matrix
 
     def __get_angle_to_object(self, x_obj: int, y_obj: int) -> int:
