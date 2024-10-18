@@ -11,6 +11,7 @@ from enum import Enum
 from typing import Tuple, List
 from move import Move
 from arm import Arm
+import cProfile
 
 
 class CameraOnBoard(BaseCamera):
@@ -20,8 +21,8 @@ class CameraOnBoard(BaseCamera):
     def __init__(self, onboard_stream_url: str, api_key: str):
         super().__init__(onboard_stream_url, self.NEURAL_MODEL, api_key)
         
-    def test_cob(self, s: socket.socket):
-        move = Move(s)
+    def test_cob(self):
+        # move = Move(s)
         while True:
             img = self.get_photo()
             p = self.__predict(img)
@@ -50,7 +51,7 @@ class CameraOnBoard(BaseCamera):
             #     return
 
             # # Turn towards object
-            # angle = self._rotate_to_object(x_obj=x, y_obj=y)
+            # angle = self._get_angle_to_object(x_obj=x, y_obj=y)
             # move.turn_deg(angle)            
            
             # # Recalc dist after turn
@@ -73,7 +74,6 @@ class CameraOnBoard(BaseCamera):
         coords = most_relevant.get_coords()
         obj_x = (coords[0][0] + coords[1][0]) // 2
         obj_y = coords[1][1]
-        print("Point: ", obj_x, obj_y)
         return self.__get_mm_by_coords(obj_x, obj_y)
         
     def __get_mm_by_coords(self, x: int, y: int) -> (int, int):
@@ -81,7 +81,7 @@ class CameraOnBoard(BaseCamera):
         proj_x, proj_y = self.__find_projection_coord(x, y, m)
         return self.__convert_coord_to_mm(proj_x, proj_y)
 
-    def convert_coord_to_mm(x: int, y: int) -> tuple[int, int]:
+    def __convert_coord_to_mm(self, x: int, y: int) -> tuple[int, int]:
         # coords with respect to (0, 0) coord of arm
         x -= 600
         y = 2000 - y
@@ -90,13 +90,12 @@ class CameraOnBoard(BaseCamera):
         return int(x * mm / pxl) + 75, int(y * mm / pxl) + 110
 
     def __get_projection_matrix(self) -> numpy.array:
-        # precalced (see algo in git ml/robot_projection.py)
         transform_matrix = numpy.array([[ 7.11620049e+00,  8.68669211e+00, -1.70901081e+03],
                                         [-2.19522636e-01,  4.36212775e+01, -4.64586208e+03],
                                         [-1.94267820e-04,  1.47179361e-02,  1.00000000e+00]])
         return transform_matrix
 
-    def _rotate_to_object(self, x_obj: int, y_obj: int) -> int:
+    def __get_angle_to_object(self, x_obj: int, y_obj: int) -> int:
         x_center = 35
         y_center = -140
         length = math.sqrt((x_obj - x_center)**2 + (y_obj - y_center)**2)
@@ -112,51 +111,8 @@ class CameraOnBoard(BaseCamera):
                     (proj_matrix[2][0] * x_src + proj_matrix[2][1] * y_src + proj_matrix[2][2]))
         return x_dst, y_dst
 
-    # @staticmethod
-    # def __show_projection_photo(self, path: str, proj_matrix: numpy.array):
-    #     img = cv2.imread(path)
-    #     assert img is not None, "file could not be read, check with os.path.exists()"
-    #     dst = cv2.warpPerspective(img, proj_matrix, (LENGTH, HEIGHT))
-    #     plt.imshow(dst)
-    #     plt.show()
-        
-    def _write_on_img(self, frame: numpy.ndarray, predictions: List[Prediction]) -> numpy.ndarray:
-        for pred in predictions:
-            left_up, right_down = pred.get_coords()
-            color = pred.get_color()
-            
-            white_color = (255, 255, 255)  # White color in BGR
-            frame = cv2.putText(frame, str(round(pred.confidence, 3)), (left_up[0], left_up[1] - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, white_color, 2)
-            frame = cv2.rectangle(frame, left_up, right_down, color, 2)
-
-        return frame
-
-    def __get_objects(self, image: numpy.ndarray, game_object: ObjectType) -> List[Prediction]:
-        found_objects = self.__predict(image)
-        res = []
-        for found_object in found_objects:
-            if found_object.object_type == game_object:
-                res.append(found_object)
-                
-        return sorted(res, key=lambda pred: pred.confidence, reverse=True)
-                
-    def __predict(self, image: numpy.ndarray) -> List[Prediction]:
-        results = self.model.infer(image, confidence=self.CONFIDENCE)[0]
-        return [Prediction(pred) for pred in results.predictions]
 
 
-if __name__ == "__main__":
-    host = "192.168.2.106"
-    port = 2055
-
-    # Создаем сокет
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print(f"Соединение с {host}:{port}")
-
-    # Устанавливаем соединение
-    s.connect((host, port))      
+if __name__ == "__main__":   
     S = CameraOnBoard("http://192.168.2.106:8080/?action=stream", "uGu8WU7fJgR8qflCGaqP")
-    S.test_cob(s)
-    # print("len to box:", self.get_len_to(ObjectType.CUBE))
-
-    s.close()
+    S.test_cob()

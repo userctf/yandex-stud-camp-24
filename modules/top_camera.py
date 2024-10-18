@@ -17,32 +17,23 @@ class TopCamera(BaseCamera):
     def __init__(self, stream_url: str, neural_model: str, api_key: str):
         super().__init__(stream_url, neural_model, api_key)
 
-    def fix_eye_by_path(self, path_to_img: str, path_to_res: str, is_left: bool):
-        img = cv2.imread(path_to_img)
+    @staticmethod
+    def fix_eye(frame: np.ndarray, is_left: bool) -> np.ndarray: # IMPORTANT: it crops a little bit
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        dst = self.fix_eye(img, is_left)
-        # print('Undistorted image written to: %s' % path_to_res)
-        cv2.imwrite(path_to_res, dst)
-
-    def fix_eye(self, img: np.array, is_left: bool) -> np.array:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-        h, w = img.shape[:2]
-        camera_matrix = self.left_matrix if is_left else self.right_matrix
-        dist_coefs = self.left_dist_coefs if is_left else self.right_dist_coefs
+        h, w = frame.shape[:2]
+        camera_matrix = TopCamera.left_matrix if is_left else TopCamera.right_matrix
+        dist_coefs = TopCamera.left_dist_coefs if is_left else TopCamera.right_dist_coefs
 
         new_camera_mtx, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, dist_coefs, (w, h), 1, (w, h))
 
-        dst = cv2.undistort(img, camera_matrix, dist_coefs, None, new_camera_mtx)
+        dst = cv2.undistort(frame, camera_matrix, dist_coefs, None, new_camera_mtx)
 
         dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
 
         # crop and save the image
         x, y, w, h = roi
-        dst = dst[y - 20:y + h, x:x + w]
-
-        # print('Undistorted image written to: %s' % path_to_res)
-        return dst
+        return dst[y - 20:y + h, x:x + w]
 
     @staticmethod
     def get_all_contours(frame: np.array) -> List:        
@@ -58,8 +49,9 @@ class TopCamera(BaseCamera):
         contours, hierarchy = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return contours
         
-    def get_game_arena_size(self, frame: np.array) -> (int, int, int, int):
-        img = img[0:1400, 100:1600]
+    @staticmethod
+    def get_game_arena_size(frame: np.array) -> (int, int, int, int): # x y w h from top left angle
+        img = frame[0:1400, 100:1600] # crop to remove extra data
         contours = TopCamera.get_all_contours(img)
         area_res = []
         
@@ -67,33 +59,23 @@ class TopCamera(BaseCamera):
             # x y w h
             area_res.append(cv2.boundingRect(c))
         
-        ans = sorted(area_res, key=lambda box: box[2] * box[3], reverse=True)[0]
-        ans[2] += 100
-        return ans
-
-    
-        # while True:
-        #     img = self.get_photo()
-        #     img = self.fix_eye(img, True)[0:1400, 100:1600]
-            
-        #     contours = TopCamera.get_all_contours(img)
-            
-        #     for c in contours:
-        #         x, y, w, h = cv2.boundingRect(c)
-        #         if w * h > 110_000:
-        #             img = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 255), 2)
-        #     cv2.imshow('Frame with Box', img)
-            
-        #     if cv2.waitKey(1) & 0xFF == ord('q'):
-        #         break
-        
-        # cv2.destroyAllWindows()
-
-    
+        ans = sorted(area_res, key=lambda box: box[2] * box[3], reverse=True)
+        if len(ans) == 0:
+            return (0, 0, 0, 0)
+        return (ans[0][0], ans[0][1], ans[0][2] + 100, ans[0][3])
+        # example of use: frame[box_y:box_y+box_h, box_x:box_x+box_w]
     
     @staticmethod
-    def detection_borders(frame: np.array) -> str:
-        contours = TopCamera.get_all_contours(frame, (100, 900, 400, 1300))
+    def detection_borders(frame: np.array) -> (bool, str):
+        PADDING_Y = 20
+        PADDING_X = 20
+        (box_x, box_y, box_w, box_h) = TopCamera.get_game_arena_size(frame)
+        frame = frame[
+            box_y + PADDING_Y   :   box_y + box_h - 2 * PADDING_Y,
+            box_x + PADDING_X   :   box_x + box_w - 2 * PADDING_X
+        ] # crop to main rectangle
+                
+        contours = TopCamera.get_all_contours(frame)
         res = []
         for c in contours:
             x, y, w, h = cv2.boundingRect(c)
@@ -102,39 +84,13 @@ class TopCamera(BaseCamera):
                 
         res.sort(key=lambda i: i[0] * i[1], reverse=True) # find the biggest by area
         if res[0][0] > res[0][1]:
-            return "Top/Bottom"
+            return (True, "Top/Bottom")
         else:
-            return "Left/Right"
-        
-    # test
-    def test(self):
-        while True:
-            # cProfile.run('self.operate_frame()')
-            self.operate_frame()
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        
-        cv2.destroyAllWindows()
-    
-    def operate_frame(self):
-        img = self.get_photo()
-        img = self.fix_eye(img, True)
-        
-        crop = self.get_game_arena_size(img)
-        img = img[crop[0]:crop[1], crop[2]:crop[3]]
-        
-        p = self._predict(img)
-        self._write_on_img(img, p)
-        
-        cv2.imshow('Frame with Box', img)
+            return (False, "Left/Right")
 
 
 if __name__ == '__main__':
     camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1', api_key="d6bnjs5HORwCF1APwuBX")
-    # img = cv2.imread("C:\\Users\\alexk\OneDrive\Documents\Studcamp-Yandex-2024\\right_output\output_frame_0016_fixed.png")
-    # print(camera.detection_borders(img))
-    # img = camera.get_photo()
-    # print(camera.detection_borders(img))
-    # camera.get_game_arena_size(None)
-    camera.test()
-    # cProfile.run('camera.operate_frame()')
+    img = camera.get_photo()
+    img = camera.fix_eye(img, True)
+    print(camera.detection_borders(img))

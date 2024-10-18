@@ -8,10 +8,14 @@ import requests
 
 class ObjectType(Enum):
     CUBE = 0
-    BALL = 1
-    BASKET = 2
-    BUTTONS = 3
+    BALL = 1    # it is detecting only by on board cam
+    BASKET = 2  # it is detecting only by on board cam
+    BUTTONS = 3 # it is detecting only by on board cam
     ROBOT = 4
+    GREEN_BASE = 5
+    BTN_G_O = 6
+    BTN_P_B = 7
+    
 
 class Prediction:
     def __init__(self, prediction):
@@ -45,7 +49,7 @@ class Prediction:
         elif self.object_type == ObjectType.ROBOT:
             return (203, 89, 23) # blue
         
-        
+    @staticmethod
     def __get_type(name: str) -> ObjectType:
         if name == "red cube":
             return ObjectType.CUBE
@@ -57,6 +61,12 @@ class Prediction:
             return ObjectType.BUTTONS
         elif name == "robot":
             return ObjectType.ROBOT
+        elif name == "green base":
+            return ObjectType.GREEN_BASE
+        elif name == "button green":
+            return ObjectType.BTN_G_O
+        elif name == "button blue":
+            return ObjectType.BTN_P_B
         else:
             print("[ERROR] Can not find name ", name)
 
@@ -65,31 +75,19 @@ class BaseCamera:
     CONFIDENCE = 0.5
     
     def __init__(self, stream_url: str, neural_model: str, api_key: str):
+        print("[INFO] start initiating camera")
         self.stream_url = stream_url
         self.model = get_model(model_id=neural_model, api_key=api_key)
+        print("[INFO] neural model loaded")
         self.cap = cv2.VideoCapture(stream_url)
+        print("[INFO] video capturing started")
         
     # get photo from stream
-    def get_photo(self) -> numpy.ndarray: # todo move cap to self to increase speed?
+    def get_photo(self) -> numpy.ndarray:
         ret, frame = self.cap.read()
         if not ret:
-            print("[Error] while reading frame")
+            print("[ERROR] while reading frame")
         return frame
-                    
-    def __read_jpg_from_stream(self, url: str) -> bytes:
-        stream = requests.get(url, stream=True)
-        
-        read_bytes = bytes()
-        for chunk in stream.iter_content(chunk_size=1024):
-            read_bytes += chunk
-            a = read_bytes.find(b'\xff\xd8') # jpg start
-            b = read_bytes.find(b'\xff\xd9') # jpg end
-            if a != -1 and b != -1:
-                jpg = read_bytes[a:b+2]
-                # read_bytes = read_bytes[b+2:]
-                return jpg
-        
-        stream.close()
         
     def _write_on_img(self, frame: numpy.ndarray, predictions: List[Prediction]):
         for pred in predictions:
@@ -101,14 +99,14 @@ class BaseCamera:
             cv2.rectangle(frame, left_up, right_down, color, 2)
     
     # working with neural model
-    def _get_objects(self, image: numpy.ndarray, object: ObjectType) -> List[Prediction]:
-        found_objects = self._predict(image)
+    def get_objects(self, frame: numpy.ndarray, object: ObjectType) -> List[Prediction]:
+        found_objects = self._predict(frame)
         
         correct_objects = filter(lambda predict: predict.object_type == object, found_objects)
         return sorted(correct_objects, key=lambda pred: pred.confidence, reverse=True)
                 
-    def _predict(self, image: numpy.ndarray) -> List[Prediction]:
-        results = self.model.infer(image, confidence=self.CONFIDENCE)[0]
+    def _predict(self, frame: numpy.ndarray) -> List[Prediction]:
+        results = self.model.infer(frame, confidence=self.CONFIDENCE)[0]
         return [Prediction(pred) for pred in results.predictions]
     
     def __del__(self):
