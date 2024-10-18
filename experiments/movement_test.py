@@ -26,9 +26,8 @@ move = Move(s.dup())
 
 # move.move_along_path(x_path, y_path)
 
-for i in range(3):
-    move.go_sm(15)
-    time.sleep(5)
+for i in range(2):
+    move.go_sm(100)
 
 
 s.close()
