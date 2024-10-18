@@ -22,8 +22,8 @@ class CameraOnBoard(BaseCamera):
     def __init__(self, onboard_stream_url: str, neural_model_id: str, api_key: str):
         super().__init__(onboard_stream_url, neural_model_id, api_key)
 
-    def test_cob(self):
-        # move = Move(s)
+    def test_cob(self, s):
+        move = Move(s)
         while True:
             img = self.get_photo()
             p = self.predict(img)
@@ -33,34 +33,34 @@ class CameraOnBoard(BaseCamera):
             x, y = self.get_len_to(ObjectType.CUBE)
             print(f"Distance im mm: x{x}, y{y}")
 
-            # if (x, y) == (-1, -1):
-            #     # Try to find it
-            #     #  TODO
-            #     move.go_sm(-10)
-            #     move.turn_deg(-10)
-            #     continue
+            if (x, y) == (-1, -1):
+                # Try to find it
+                #  TODO
+                move.go_sm(-10)
+                move.turn_deg(-10)
+                continue
 
-            # # Too close: robot will not be able to grab the object
-            # if y < 120: # MAGIC NUMBER
-            #     move.go_sm(-10)
-            #     continue
+            # Too close: robot will not be able to grab the object
+            if y < 120: # MAGIC NUMBER
+                move.go_sm(-10)
+                continue
 
-            # # Let's grab it
-            # if y < 220 and abs(x) < 40: # MAGIC NUMBER
-            #     arm = Arm(s)
-            #     arm.grab(y + 20)
-            #     return
+            # Let's grab it
+            if y < 220 and abs(x) < 40: # MAGIC NUMBER
+                arm = Arm(s)
+                arm.grab(y + 20)
+                return
 
-            # # Turn towards object
-            # angle = self._get_angle_to_object(x_obj=x, y_obj=y)
-            # move.turn_deg(angle)            
+            # Turn towards object
+            angle = self.__get_angle_to_object(x_obj=x, y_obj=y)
+            move.turn_deg(angle)            
 
-            # # Recalc dist after turn
-            # x, y = self.get_len_to(ObjectType.CUBE)
+            # Recalc dist after turn
+            x, y = self.get_len_to(ObjectType.CUBE)
 
-            # # Move towards object
-            # move.go_sm(y//20)
-
+            # Move towards object
+            move.go_sm(y//20)
+            sleep(1)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
@@ -88,16 +88,13 @@ class CameraOnBoard(BaseCamera):
         y = 2000 - y
         mm = 1
         pxl = 3
-        k = 32 / 515
-        b = 15 - k * 600
-        correction_of_y = int(k * y + b)
-        return int(x * mm / pxl) + 75, int(y * mm / pxl) + 85 + correction_of_y
+        return int(x * mm / pxl) + 73, int(y * mm / pxl) + 123
 
     def __get_projection_matrix(self) -> numpy.array:
         # precalced (see algo in git ml/robot_projection.py)
-        transform_matrix = numpy.array([[5.03740648e+00, 6.51704073e+00, -1.01448878e+03],
-                                        [0.00000000e+00, 4.15627598e+01, -1.16375727e+03],
-                                        [0.00000000e+00, 1.08617346e-02, 1.00000000e+00]])
+        transform_matrix = numpy.array([[1.05195863e+01,  1.27854429e+01, -2.73849594e+03],
+                                        [1.94315457e-01,  6.44723966e+01, -7.95234016e+03],
+                                        [-3.05200625e-05,  2.16211055e-02,  1.00000000e+00]])
 
         return transform_matrix
 
@@ -119,5 +116,16 @@ class CameraOnBoard(BaseCamera):
 
 
 if __name__ == "__main__":
+    host = "192.168.2.106"
+    port = 2055
+
+    # Создаем сокет
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print(f"Соединение с {host}:{port}")
+
+    # Устанавливаем соединение
+    s.connect((host, port))
     S = CameraOnBoard("http://192.168.2.106:8080/?action=stream", NEURAL_MODEL, "uGu8WU7fJgR8qflCGaqP")
-    S.test_cob()
+    S.test_cob(s.dup())
+    
+    s.close()
