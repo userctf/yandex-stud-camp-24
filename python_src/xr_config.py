@@ -30,7 +30,7 @@ VOICE_MOD_SET = {'normal': 0, 'openlight': 1, 'closelight': 2, 'forward': 3, 'ba
 
 PATH_DECT_FLAG = 0  		# 摄像头巡线标志位，0为巡黑线（浅色地面，深色线）；1为巡白线（深色地面，浅色线）
 
-LEFT_SPEED = 80  			# 机器人左侧速度
+LEFT_SPEED = 82  			# 机器人左侧速度
 RIGHT_SPEED = 80  			# 机器人右侧速度
 LASRT_LEFT_SPEED = 100  	# 上一次机器人左侧速度
 LASRT_RIGHT_SPEED = 100  	# 上一次机器人右侧速度

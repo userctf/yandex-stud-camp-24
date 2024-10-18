@@ -78,6 +78,7 @@ class Move(BaseModule):
                 time.sleep(0.01)
         else:
             print('duration must be from 0 to 2.54')
+        time.sleep(0.2)
 
 
     @staticmethod
