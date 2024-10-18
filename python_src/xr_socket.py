@@ -349,6 +349,7 @@ class Socket:
             go.forward()
             time.sleep(duration)
             go.stop()
+            self.sendbuf('STOP_MOVING_RESPONSE'.encode('utf-8'))
 
         elif buffer[0] == 0x45:
             duration = buffer[1] / 100

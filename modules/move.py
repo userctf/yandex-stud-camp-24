@@ -14,6 +14,8 @@ TIMES_FORWARD = [0, 0.1, 0.25, 0.5, 1, 2, 2.54]
 ANGLES_RIGHT = [0, 10, 20, 30, 45, 90, 120, 180]
 TIMES_RIGHT = [0, 0.13, 0.2, 0.27, 0.3, 0.6, 0.75, 1.05]
 
+STOP_MOVING_RESPONSE = 'STOP_MOVING_RESPONSE'
+
 
 class Move(BaseModule):
     def __init__(self, s: socket.socket, x_cord : int = 0, y_cord : int = 0, angle : int = 0):
@@ -55,6 +57,19 @@ class Move(BaseModule):
             msg[1] = 68
             msg[2] = int(duration * 100)
             self._send(msg)
+            #######################################
+            start_time = time.time()
+            while True:
+                elapsed_time = time.time() - start_time
+                response = self._get_response().decode('utf-8')
+                if response == STOP_MOVING_RESPONSE:
+                    print('Got stop moving response')
+                    break
+                if elapsed_time >= 3:
+                    print('No response for > 3 seconds')
+                    break
+                time.sleep(0.01)
+            #########################################
         else:
             print('duration must be from 0 to 2.54')
 
