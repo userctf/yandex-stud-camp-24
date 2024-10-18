@@ -81,19 +81,19 @@ class CameraOnBoard(BaseCamera):
         proj_x, proj_y = self.__find_projection_coord(x, y, m)
         return self.__convert_coord_to_mm(proj_x, proj_y)
 
-    def __convert_coord_to_mm(self, x: int, y: int) -> tuple[int, int]:
+    def convert_coord_to_mm(x: int, y: int) -> tuple[int, int]:
         # coords with respect to (0, 0) coord of arm
         x -= 600
         y = 2000 - y
         mm = 105
         pxl = 305
-        return int(x * mm / pxl) + 75, int(y * mm / pxl) + 120
+        return int(x * mm / pxl) + 75, int(y * mm / pxl) + 110
 
     def __get_projection_matrix(self) -> numpy.array:
         # precalced (see algo in git ml/robot_projection.py)
-        transform_matrix = numpy.array([[ 4.06696294e+00,  3.85634343e+00, -7.50161575e+02],
-                                    [-3.55573093e-01,  1.98806608e+01, -1.34064097e+03],
-                                    [-1.80493956e-04,  6.39010156e-03,  1.00000000e+00]])
+        transform_matrix = numpy.array([[ 7.11620049e+00,  8.68669211e+00, -1.70901081e+03],
+                                        [-2.19522636e-01,  4.36212775e+01, -4.64586208e+03],
+                                        [-1.94267820e-04,  1.47179361e-02,  1.00000000e+00]])
         return transform_matrix
 
     def _rotate_to_object(self, x_obj: int, y_obj: int) -> int:
