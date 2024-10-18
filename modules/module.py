@@ -21,7 +21,7 @@ class BaseModule:
         
     def _get_response(self) -> bytes:
         try:
-            data = self.s.recv(self.RECV_LEN)
+            data = self.socket.recv(self.RECV_LEN)
             if not data:
                 print(f"Данные от сокета не пришли: {e}")
                 
