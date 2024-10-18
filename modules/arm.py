@@ -1,12 +1,14 @@
 import math
 import socket
+import time
+
 from module import BaseModule
 
 SLEEP_TIME = 0.4
 
 BASE_MESSAGE = bytearray([255, 1, 0, 90, 255])
 BEEP_MESSAGE = bytearray([255, 65, 1, 1, 255])
-DEFAULT_POSITION = (100, 190)
+DEFAULT_POSITION = (100, 220)
 BUTTON_HEIGHT = 105
 OBJECT_HEIGHT = 8
 TOP_POSITION = (5, 300)
@@ -79,7 +81,7 @@ class Arm(BaseModule):
 
     def open_hand(self):
         state = self.state.copy()
-        state[3] = 50
+        state[3] = 20
         self._set_state(state)
 
     def rotate_hand_vertical(self):
@@ -112,13 +114,20 @@ class Arm(BaseModule):
 
     def grab(self, length: int, ball: bool = False):
         if length > 250:
-            print("WARNING. MAX prooved LENGTH IS 250, BUT YOUR'S IS %s", length)
+            print("WARNING. MAX GUARANTEED LENGTH IS 250, BUT YOURS IS %s", length)
         self.rotate_hand_horizontal()
         self.open_hand()
         self.set_arm(length, OBJECT_HEIGHT)
         self.close_hand(ball)
-        self.default()
+        self.set_default()
         self.rotate_hand_vertical()
 
-    def default(self):
+    def release(self):
+        self.rotate_hand_horizontal()
+        self.open_hand()
+        time.sleep(0.5)
+        self.close_hand()
+        self.rotate_hand_vertical()
+
+    def set_default(self):
         self.set_arm(*DEFAULT_POSITION)
