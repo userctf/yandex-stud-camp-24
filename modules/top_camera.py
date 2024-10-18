@@ -59,7 +59,7 @@ class TopCamera(BaseCamera):
         return contours
         
     def get_game_arena_size(self, frame: np.array) -> (int, int, int, int):
-        img = self.fix_eye(img, True)[0:1400, 100:1600]
+        img = img[0:1400, 100:1600]
         contours = TopCamera.get_all_contours(img)
         area_res = []
         
