@@ -2,7 +2,7 @@ import math
 import socket
 import time
 
-from modules.module import BaseModule
+from module import BaseModule
 
 SLEEP_TIME = 0.4
 
