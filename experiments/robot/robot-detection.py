@@ -16,7 +16,6 @@ camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects
 image = cv2.imread("left.jpg")
 im2 = image.copy()
 preds = camera.get_objects(im2, ObjectType.ROBOT)
-image = cv2.cvtColor(image, cv2.RGV)
 cv2.imshow("z", image)
 print(preds)
 
