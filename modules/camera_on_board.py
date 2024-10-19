@@ -36,31 +36,33 @@ class CameraOnBoard(BaseCamera):
             if (x, y) == (-1, -1):
                 # Try to find it
                 #  TODO
-                move.go_sm(-10)
+                move.go_sm(-4)
                 move.turn_deg(-10)
+                sleep(1)
                 continue
 
             # Too close: robot will not be able to grab the object
             if y < 120: # MAGIC NUMBER
-                move.go_sm(-10)
+                move.go_sm(-4)
+                sleep(1)
                 continue
 
             # Let's grab it
             if y < 220 and abs(x) < 40: # MAGIC NUMBER
                 arm = Arm(s)
-                arm.grab(y + 20)
+                arm.grab(y + 30)
+                sleep(1)
                 return
 
             # Turn towards object
             angle = self.__get_angle_to_object(x_obj=x, y_obj=y)
-            move.turn_deg(angle)            
+            move.turn_deg(angle * 0.5)            
 
             # Recalc dist after turn
             x, y = self.get_len_to(ObjectType.CUBE)
 
             # Move towards object
             move.go_sm(y//20)
-            sleep(1)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
