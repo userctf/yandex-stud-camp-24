@@ -1,3 +1,5 @@
+import threading
+from time import sleep
 from inference import get_model
 from enum import Enum
 import cv2
@@ -85,11 +87,36 @@ class BaseCamera:
         self.model = get_model(model_id=neural_model, api_key=api_key)
         print("[INFO] neural model loaded")
         self.cap = cv2.VideoCapture(stream_url)
+        self.ret = False
+        self.frame = None
+        self.stopped = False
+        self.lock = threading.Lock()
+        threading.Thread(target=self.__camera_reader, args=()).start()
+        sleep(1) # Probably it is useless and can be removed
         print("[INFO] video capturing started")
+
+    def __camera_reader(self): # TODO: also apply model [model.infer] in this thread just after reading the image so it won't bottleneck the main thread
+        while not self.stopped:
+            if self.cap.isOpened():
+                ret, frame = self.cap.read()
+                with self.lock:
+                    self.ret, self.frame = ret, frame
+            else:
+                self.__stop()
+                
+    def __stop(self):
+        self.stopped = True
+        self.cap.release()
+
+    def read(self):
+       with self.lock:
+           return self.ret, self.frame
+
+
 
     # get photo from stream
     def get_photo(self) -> numpy.ndarray:
-        ret, frame = self.cap.read()
+        ret, frame = self.read()
         if not ret:
             print("[ERROR] while reading frame")
         return frame
