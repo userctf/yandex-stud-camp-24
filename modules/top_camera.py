@@ -2,7 +2,7 @@ from base_camera import BaseCamera, Prediction
 import cv2
 import numpy as np
 from typing import Tuple, List
-import cProfile
+
 
 class TopCamera(BaseCamera):
     left_matrix = np.array([[850.07, 0., 929.22],
@@ -18,7 +18,7 @@ class TopCamera(BaseCamera):
         super().__init__(stream_url, neural_model, api_key)
 
     @staticmethod
-    def fix_eye(frame: np.ndarray, is_left: bool) -> np.ndarray: # IMPORTANT: it crops a little bit
+    def fix_eye(frame: np.ndarray, is_left: bool) -> np.ndarray:  # IMPORTANT: it crops a little bit
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         h, w = frame.shape[:2]
@@ -48,32 +48,33 @@ class TopCamera(BaseCamera):
         edges = cv2.Canny(frame_morph, 0, 250)
         contours, hierarchy = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return contours
-        
+
     @staticmethod
-    def get_game_arena_size(frame: np.array) -> (int, int, int, int): # x y w h from top left angle
-        img = frame[0:1400, 100:1600] # crop to remove extra data
+    def get_game_arena_size(frame: np.array) -> (int, int, int, int):  # x y w h from top left angle
+        x_offset = 100
+        img = frame[0:1400, x_offset:1600]  # crop to remove extra data
         contours = TopCamera.get_all_contours(img)
         area_res = []
 
         for c in contours:
             # x y w h
             area_res.append(cv2.boundingRect(c))
-        
+
         ans = sorted(area_res, key=lambda box: box[2] * box[3], reverse=True)
         if len(ans) == 0:
             return (0, 0, 0, 0)
-        return (ans[0][0], ans[0][1], ans[0][2] + 100, ans[0][3])
+        return (ans[0][0] + x_offset, ans[0][1], ans[0][2], ans[0][3])
         # example of use: frame[box_y:box_y+box_h, box_x:box_x+box_w]
-    
+
     @staticmethod
     def detection_borders(frame: np.array) -> (bool, str):
         PADDING_Y = 20
         PADDING_X = 20
-        (box_x, box_y, box_w, box_h) = TopCamera.get_game_arena_size(frame)
+        box_x, box_y, box_w, box_h, _ = TopCamera.get_game_arena_size(frame)
         frame = frame[
-            box_y + PADDING_Y   :   box_y + box_h - 2 * PADDING_Y,
-            box_x + PADDING_X   :   box_x + box_w - 2 * PADDING_X
-        ] # crop to main rectangle
+                box_y + PADDING_Y:   box_y + box_h - 2 * PADDING_Y,
+                box_x + PADDING_X:   box_x + box_w - 2 * PADDING_X
+                ]  # crop to main rectangle
 
         contours = TopCamera.get_all_contours(frame)
         res = []
@@ -90,7 +91,8 @@ class TopCamera(BaseCamera):
 
 
 if __name__ == '__main__':
-    camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1', api_key="d6bnjs5HORwCF1APwuBX")
+    camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1',
+                       api_key="d6bnjs5HORwCF1APwuBX")
     img = camera.get_photo()
     img = camera.fix_eye(img, True)
     print(camera.detection_borders(img))
