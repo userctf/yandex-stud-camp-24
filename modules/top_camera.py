@@ -51,7 +51,8 @@ class TopCamera(BaseCamera):
 
     @staticmethod
     def get_game_arena_size(frame: np.array) -> (int, int, int, int):  # x y w h from top left angle
-        img = frame[0:1400, 100:1600]  # crop to remove extra data
+        x_offset = 100
+        img = frame[0:1400, x_offset:1600]  # crop to remove extra data
         contours = TopCamera.get_all_contours(img)
         area_res = []
 
@@ -62,14 +63,14 @@ class TopCamera(BaseCamera):
         ans = sorted(area_res, key=lambda box: box[2] * box[3], reverse=True)
         if len(ans) == 0:
             return (0, 0, 0, 0)
-        return (ans[0][0], ans[0][1], ans[0][2] + 100, ans[0][3])
+        return (ans[0][0] + x_offset, ans[0][1], ans[0][2], ans[0][3])
         # example of use: frame[box_y:box_y+box_h, box_x:box_x+box_w]
 
     @staticmethod
     def detection_borders(frame: np.array) -> (bool, str):
         PADDING_Y = 20
         PADDING_X = 20
-        (box_x, box_y, box_w, box_h) = TopCamera.get_game_arena_size(frame)
+        box_x, box_y, box_w, box_h, _ = TopCamera.get_game_arena_size(frame)
         frame = frame[
                 box_y + PADDING_Y:   box_y + box_h - 2 * PADDING_Y,
                 box_x + PADDING_X:   box_x + box_w - 2 * PADDING_X
