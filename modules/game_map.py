@@ -2,7 +2,7 @@ from typing import List
 
 from zxingcpp import Position
 
-from modules.base_camera import ObjectType
+from base_camera import ObjectType
 from top_camera import TopCamera
 from enum import Enum
 
