@@ -82,21 +82,21 @@ class Move(BaseModule):
 
             # update robot's state
             if direction == Dir.FORWARD:
-                dist = self._time_to_dist(time_moving)
+                dist = self._time_to_dist(TIMES_FORWARD, DISTS_FORWARD, time_moving)
                 self.__x_cord += dist * math.cos(math.radians(self.__angle))
                 self.__y_cord += dist * math.sin(math.radians(self.__angle))
             elif direction == Dir.BACK:
-                dist = self._time_to_dist(time_moving)
+                dist = self._time_to_dist(TIMES_FORWARD, DISTS_FORWARD, time_moving)
                 self.__x_cord -= dist * math.cos(math.radians(self.__angle))
                 self.__y_cord -= dist * math.sin(math.radians(self.__angle))
             elif direction == Dir.RIGHT:
-                angle = self._time_to_angle(time_moving)
+                angle = self._time_to_angle(TIMES_RIGHT, ANGLES_RIGHT, time_moving)
                 self.__angle = (self.__angle + angle) % 360
             elif direction == Dir.LEFT:
-                angle = self._time_to_angle(time_moving)
+                angle = self._time_to_angle(TIMES_RIGHT, ANGLES_RIGHT, time_moving)
                 self.__angle = (self.__angle - angle + 360) % 360
 
-            time.sleep(0.2)
+            time.sleep(0.3)
         else:
             print('duration must be from 0 to 2.54')
 
@@ -117,7 +117,7 @@ class Move(BaseModule):
         return piecewise_func(sec)
     
     @staticmethod
-    def _time_to_angle(angles, times, sec):
+    def _time_to_angle(times, angles, sec):
         piecewise_func = interp1d(times, angles, bounds_error=False, fill_value="extrapolate")
         return piecewise_func(sec)
     
