@@ -26,8 +26,10 @@ move = Move(s.dup())
 
 # move.move_along_path(x_path, y_path)
 
-for i in range(1):
-    move.go_sm(100)
+move.go_sm(-40)
+
+
+
 
 
 s.close()

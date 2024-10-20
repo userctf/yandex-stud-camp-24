@@ -104,6 +104,20 @@ class Socket:
         go.stop()
         server.close()
 
+    # returns time we were sleeping
+    def _smart_moving_sleep(self, duration : float) -> float:
+        start_time = time.time()
+        while True:
+            elapsed_time = time.time() - start_time
+            if elapsed_time >= duration:
+                return duration
+            
+            # Here can be code to execute while waiting
+            # if emergency_stop:
+            #     return elapsed_time
+
+            time.sleep(0.01)
+
     def communication_decode(self, buffer):
         """
         数据解析函数，根据socket过滤出来的数据即小R科技通信协议按位解析成对应的功能及动作
@@ -344,33 +358,21 @@ class Socket:
             else:
                 car_light.set_robot_color(cfg.COLOR['violet'])
 
-        elif buffer[0] == 0x44:
+        elif buffer[0] in [0x44, 0x45, 0x48, 0x47]:
             duration = buffer[1] / 100
-            go.forward()
-            time.sleep(duration)
-            go.stop()
-            self.sendbuf('STOP_MOVING_RESPONSE'.encode('utf-8'))
+            if buffer[0] == 0x44:
+                go.forward()
+            elif buffer[0] == 0x45:
+                go.back()
+            elif buffer[0] == 0x48:
+                go.right()
+            elif buffer[0] == 0x47:
+                go.left()
 
-        elif buffer[0] == 0x45:
-            duration = buffer[1] / 100
-            go.back()
-            time.sleep(duration)
+            time_moving = self._smart_moving_sleep(duration)
             go.stop()
-            self.sendbuf('STOP_MOVING_RESPONSE'.encode('utf-8'))
+            self.sendbuf(f'STOP_MOVING_RESPONSE; {time_moving}'.encode('utf-8'))
 
-        elif buffer[0] == 0x48:
-            duration = buffer[1] / 100
-            go.right()
-            time.sleep(duration)
-            go.stop()
-            self.sendbuf('STOP_MOVING_RESPONSE'.encode('utf-8'))
-
-        elif buffer[0] == 0x47:
-            duration = buffer[1] / 100
-            go.left()
-            time.sleep(duration)
-            go.stop()
-            self.sendbuf('STOP_MOVING_RESPONSE'.encode('utf-8'))
 
         elif buffer == [0xef, 0xef, 0xee]:
             print("Heartbeat Packet!")
