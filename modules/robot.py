@@ -158,7 +158,15 @@ class Robot:
 
     def move_along_path(self, game_object: GameObjectType):
         path = self.map.find_path_to(game_object)
-        self.move.move_along_path(path, stop_before_target=True)
+        while len(path) > 0:
+            self.move.move_to_point(*path[0], stop_before_target=(len(path) == 1))
+            time.sleep(1)
+            self.map.find_all_game_objects()
+            map_robot = self.map.get_our_robot_position()
+            if time.time() - map_robot.last_seen < 0.3:
+                self.move.update_state(*map_robot.position)
+            path = self.map.find_path_to(game_object)
+
 
 
 if __name__ == '__main__':
@@ -177,6 +185,9 @@ if __name__ == '__main__':
     print(robot.map.get_our_robot_position())
     robot.move.update_state(*(robot.map.get_our_robot_position().position))
     robot.move_along_path(GameObjectType.CUBE)
+    print("Дошли до куба")
     robot.find_and_grab_object(ObjectType.CUBE)
-    robot.move_along_path(GameObjectType.GREEN_BASE)
+    print("Vzyali")
+    robot.move_along_path(GameObjectType.RED_BASE)
+
     robot.throw_in_basket()
