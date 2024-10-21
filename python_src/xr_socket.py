@@ -347,6 +347,7 @@ class Socket:
                     ultrasonic.get_distance()  # dist
                 ]
 
+            print("Sensors:", data)
             self.sendbuf("\n".join([str(i) for i in data]).encode("utf-8"))
 
         elif buffer[0] == 0x43:
