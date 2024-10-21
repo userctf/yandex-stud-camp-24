@@ -7,7 +7,7 @@ from copy import deepcopy
 from base_camera import Prediction
 
 from top_camera import TopCamera
-from utils.enums import GameObjectType, GameObjectPosition, ObjectType
+from utils.enums import GameObjectType, GameStartState, ObjectType
 
 IS_LEFT = True
 
@@ -40,6 +40,17 @@ class Position:
     def __repr__(self):
         return f"({self.x}, {self.y}), angle is {self.angle}"
 
+
+OBJECT_STATE_TEMPLATE = {
+    GameObjectType.CUBE: GameStartState.UNKNOWN,
+    GameObjectType.BALL: GameStartState.UNKNOWN,
+    GameObjectType.GREEN_BASE: GameStartState.UNKNOWN,
+    GameObjectType.RED_BASE: GameStartState.UNKNOWN,
+    GameObjectType.OUR_ROBOT: GameStartState.OUTER_START_LIKE,
+    GameObjectType.BAD_ROBOT: GameStartState.OUTER_START_LIKE,
+    GameObjectType.BTN_PINK_BLUE: GameStartState.UNKNOWN,
+    GameObjectType.BTN_GREEN_ORANGE: GameStartState.UNKNOWN,
+}
 
 GAME_OBJECTS_TEMPLATE = {
     GameObjectType.CUBE: [],
@@ -75,8 +86,8 @@ class GameMap:
     def __init__(self, top_camera: TopCamera, color: str = "red"):
         self.top_camera = top_camera
         self.game_objects = deepcopy(GAME_OBJECTS_TEMPLATE)
-        self.inner_boards = GameObjectPosition.UNKNOWN
-        self.outer_boards = GameObjectPosition.UNKNOWN
+        self.inner_boards = GameStartState.UNKNOWN
+        self.outer_boards = GameStartState.UNKNOWN
         self.color = color
         self.limits = []  # первый элемент изменение по оси х, второй по оси у
         self._set_frame_limits()
@@ -86,6 +97,7 @@ class GameMap:
         top, bottom = robot.get_coords()
         cropped = image[top[1]:bottom[1], top[0]:bottom[0]]
         return cropped, Position(top[0], top[1])
+
 
     @staticmethod
     def _find_robot_color_and_position(cropped_frame: np.ndarray, color: str) -> Tuple[bool, Position]:
@@ -174,7 +186,8 @@ class GameMap:
     def set_up_field(self):
         start_time = time.time()
         while time.time() - start_time < 2:
-            frame = self.top_camera.get_photo()
+            # frame = self.top_camera.get_photo()
+            frame = cv2.imread("img.png")
             frame = self.top_camera.fix_eye(frame, IS_LEFT)
             frame, w, h = self.top_camera.get_game_arena(frame)
 
@@ -184,8 +197,9 @@ class GameMap:
             for predict in predicts:
                 if predict.object_type == ObjectType.CUBE:
                     pass
-
-
+                elif predict.object_type == ObjectType.GREEN_BASE:
+                    pass
+            break
 
     def find_all_game_objects(self):
         # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
@@ -223,6 +237,6 @@ if __name__ == "__main__":
     camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1',
                        api_key="d6bnjs5HORwCF1APwuBX")
     game_map = GameMap(camera)
-    game_map.find_all_game_objects()
+    game_map.set_up_field()
     camera.stopped = True
     cv2.destroyAllWindows()
