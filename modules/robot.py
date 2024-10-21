@@ -62,25 +62,22 @@ game_tasks = {
 class Robot:
     def __init__(self, s: socket.socket, is_left: bool = True, color: str = "red"):
         self.arm = Arm(s)
-        self.move = Move(s)
+        
         self.top_camera = TopCamera(TOP_CAMERA_URL, TOP_CAMERA_NEURAL_MODEL, TOP_CAMERA_API_KEY)
         self.map = GameMap(self.top_camera, is_left=is_left, color=color)
         self.board_camera = CameraOnBoard(ON_BOARD_CAMERA_URL, ON_BOARD_NEURAL_MODEL, ON_BOARD_API_KEY)
-        
-        # correct robot position
-        Robot.__correct_initial_angle(self.map.get_our_robot)
+
+        x = self.map.get_our_robot().get_center().x
+        y = self.map.get_our_robot().get_center().y
+        # left bottom
+        angle = self.map.get_our_robot().get_center().angle
+        # right top
+        if y < 150: # Magic number Approx half of the image
+            angle = (180 + angle) % 360
+
+        self.move = Move(s, x, y, angle)
+
         # Need to add sensors
-        
-    @staticmethod
-    def __correct_initial_angle(our_robot: GameObject):
-        center = our_robot.get_center()
-        x, y, angle = center.x, center.y, center.angle
-        if y > 150: # MAGIC NUMBER approx half of image
-            # left bottom
-            center.angle = angle
-        else:
-            # right top
-            center.angle = (180 + angle) % 360
     
     def __get_angle_to_object(self, x_obj: int, y_obj: int) -> int:
         x_center = 35
