@@ -195,6 +195,7 @@ class GameMap:
 
         frame, w, h = self.top_camera.get_game_arena(frame)
 
+
         predicts = self.top_camera.predict(frame)
         print(predicts)
 
@@ -217,6 +218,10 @@ class GameMap:
                 )
 
         self.game_objects = new_game_objects
+
+    def get_path(self) -> List[Tuple[int, int]]:
+        path = [(0, 0), (0, 0)]
+        return path
 
 
 if __name__ == "__main__":
