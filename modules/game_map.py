@@ -77,7 +77,7 @@ class GameMap:
         self.inner_boards = GameObjectPosition.UNKNOWN
         self.outer_boards = GameObjectPosition.UNKNOWN
         self.color = color
-        self.limits = []
+        self.limits = [] # первый элемент изменение по оси х, второй по оси у
         self._set_frame_limits()
 
     @staticmethod
@@ -154,7 +154,7 @@ class GameMap:
         frame = self.top_camera.fix_eye(frame, IS_LEFT)
 
         x, y, w, h = self.top_camera.get_game_arena_size(frame)
-        self.limits = [h / self.HEIGHT, w / self.WIDTH]
+        self.limits = [w / VIRTUAL_WIDTH, h / VIRTUAL_HEIGHT]
 
     def _frame_to_map_position(self, position: Position) -> Position:
         # Using limits from _set_frame_limits. Can't be made static
