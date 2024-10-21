@@ -1,8 +1,14 @@
 import time
 from typing import List, Tuple
+
 from .position import Position
 from .enums import GameObjectType
 
+
+WIDTH = 421
+HEIGHT = 321
+
+CUBE_APPROACH = 30
 
 class GameObject:
     def __init__(self, position: Position, size: Tuple[float, float], object_type: GameObjectType):
@@ -16,7 +22,7 @@ class GameObject:
         return self.position
 
     def get_approach_points(self) -> List[Position]:
-        pass
+        return [self.position]
 
     def __repr__(self):
         return f"{self.type} with center {self.position}. Last seen at {self.last_seen}"
@@ -46,3 +52,18 @@ class Base(GameObject):  # Это База
             else:
                 return [self.position + vector_left, self.position + vector_up,
                         self.position + vector_down]
+
+
+class Cube(GameObject):
+    def get_approach_points(self) -> List[Position]:
+        result = []
+        if self.position.x < WIDTH // 2:
+            result.append(self.position + Position(CUBE_APPROACH, 0))
+        else:
+            result.append(self.position + Position(-CUBE_APPROACH, 0))
+        if self.position.y < HEIGHT // 2:
+            result.append(self.position + Position(0, CUBE_APPROACH))
+        else:
+            result.append(self.position + Position(0, -CUBE_APPROACH))
+        print(self, result)
+        return result
