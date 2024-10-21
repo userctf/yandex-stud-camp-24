@@ -238,7 +238,7 @@ class GameMap:
                 if predict.object_type == ObjectType.CUBE:
                     pass
                 elif predict.object_type == ObjectType.GREEN_BASE:
-                    s
+                    self._set_base_positions(predict)
             break
 
 
