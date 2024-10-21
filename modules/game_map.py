@@ -92,6 +92,7 @@ class GameMap:
         self.color = color
         self.limits = []  # первый элемент изменение по оси х, второй по оси у
         self._set_frame_limits()
+        self.set_up_field()
 
     @staticmethod
     def _crop_to_robot(image: np.ndarray, robot: Prediction) -> Tuple[np.ndarray, Position]:
@@ -218,10 +219,8 @@ class GameMap:
         self.game_objects[GameObjectType.RED_BASE] = [
             GameObject(red_position, (conv_width, conv_height), GameObjectType.RED_BASE)]
 
-
     def get_our_robot_position(self) -> GameObject:
         return self.game_objects[GameObjectType.OUR_ROBOT][0]
-
 
     def set_up_field(self):
         start_time = time.time()
@@ -241,7 +240,6 @@ class GameMap:
                     self._set_base_positions(predict)
             break
 
-
     def find_all_game_objects(self):
         # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
         frame = self.top_camera.get_photo()
@@ -260,7 +258,7 @@ class GameMap:
                 is_our, position = self._get_robot_position(frame, predict)
                 robot_type = GameObjectType.OUR_ROBOT if is_our else GameObjectType.BAD_ROBOT
                 new_game_objects[robot_type] = [GameObject(
-                    position,
+                    self._frame_to_map_position(position),
                     predict.get_size(),
                     robot_type,
                 )]
@@ -268,10 +266,21 @@ class GameMap:
                 print(new_game_objects[GameObjectType.BAD_ROBOT])
             elif predict.object_type == ObjectType.CUBE:
                 new_game_objects[GameObjectType.CUBE].append(
-                    GameObject(np.int32(predict.center), predict.get_size(), GameObjectType.CUBE)
+                    GameObject(self._frame_to_map_position(Position(*np.int32(predict.center))),
+                               predict.get_size(),
+                               GameObjectType.CUBE)
                 )
+        for key in self.game_objects.keys():
+            if key == GameObjectType.GREEN_BASE:
+                continue
+            if key == GameObjectType.CUBE:
+                self.game_objects[key] = new_game_objects[key].copy()
+            elif key == GameObjectType.OUR_ROBOT:
+                if len(new_game_objects[key]) == 0:
+                    continue
+                self.game_objects[key] = new_game_objects[key].copy()
 
-        self.game_objects = new_game_objects
+        # self.game_objects = new_game_objects
 
 
 if __name__ == "__main__":
