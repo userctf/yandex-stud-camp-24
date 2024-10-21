@@ -36,6 +36,16 @@ class Ultrasonic(object):
 		self.s_L = 0
 		self.s_R = 0
 
+	def get_filtered_distance(self, n=5):
+		all_data = sorted([self.get_distance() for _ in range(n)])
+		median = 0
+		if n % 2 == 0:
+			median = (all_data[n // 2 - 1] + all_data[n // 2]) / 2
+		else:
+			median = all_data[n // 2] 
+		cfg.DISTANCE = round(median, 2)
+		return cfg.DISTANCE
+	
 	def get_distance(self):
 		"""
 		获取超声波距离函数,有返回值distance，单位cm
@@ -60,7 +70,7 @@ class Ultrasonic(object):
 		if distance < 500: 
 			cfg.DISTANCE = round(distance, 2)
 		else:
-			cfg.DISTANCE = 0
+			cfg.DISTANCE = 500
 		return cfg.DISTANCE
 
 	def avoidbyragar(self):

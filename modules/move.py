@@ -9,11 +9,12 @@ from enum import Enum
 SLEEP_TIME = 0
 BASE_MESSAGE = bytearray([255, 0, 0, 0, 255])
 
-DISTS_FORWARD = [0, 2, 10, 23, 47, 92, 115]
-TIMES_FORWARD = [0, 0.1, 0.25, 0.5, 1, 2, 2.54]
+DISTS = [0, 8, 12, 20, 39, 59, 77, 98]
+TIMES_DIST = [0, 0.2, 0.3, 0.5, 1, 1.5, 2, 2.54]
 
-ANGLES_RIGHT = [0, 10, 20, 30, 45, 90, 120, 180]
-TIMES_RIGHT = [0, 0.13, 0.2, 0.27, 0.3, 0.6, 0.75, 1.05]
+ANGLES = [0, 5, 10, 15, 20, 30, 45, 60, 90, 120, 135, 180]
+TIMES_RIGHT = [0, 0.07, 0.12, 0.16, 0.2, 0.27, 0.36, 0.45, 0.64, 0.8, 0.88, 1.15]
+TIMES_LEFT = [0, 0.07, 0.12, 0.16, 0.2, 0.27, 0.36, 0.45, 0.64, 0.8, 0.88, 1.15]
 
 class Dir(Enum):
     FORWARD = 68
@@ -58,6 +59,19 @@ class Move(BaseModule):
         msg[2] = 4
         self._send(msg)
 
+    def set_speed(self, l_speed : int, r_speed: int):
+        msg = BASE_MESSAGE.copy()
+        msg[1] = 2
+
+        msg[2] = 1
+        msg[3] = r_speed
+        self._send(msg)
+
+        msg[2] = 2
+        msg[3] = l_speed
+        self._send(msg)
+
+
 
     # 0 < duration in seconds < 2.55
     def _move(self, direction : Dir, duration : float):
@@ -82,18 +96,18 @@ class Move(BaseModule):
 
             # update robot's state
             if direction == Dir.FORWARD:
-                dist = self._time_to_dist(TIMES_FORWARD, DISTS_FORWARD, time_moving)
+                dist = self._time_to_dist(TIMES_DIST, DISTS, time_moving)
                 self.__x_cord += dist * math.sin(math.radians(self.__angle))
                 self.__y_cord += dist * math.cos(math.radians(self.__angle))
             elif direction == Dir.BACK:
-                dist = self._time_to_dist(TIMES_FORWARD, DISTS_FORWARD, time_moving)
+                dist = self._time_to_dist(TIMES_DIST, DISTS, time_moving)
                 self.__x_cord -= dist * math.sin(math.radians(self.__angle))
                 self.__y_cord -= dist * math.cos(math.radians(self.__angle))
             elif direction == Dir.RIGHT:
-                angle = self._time_to_angle(TIMES_RIGHT, ANGLES_RIGHT, time_moving)
+                angle = self._time_to_angle(TIMES_RIGHT, ANGLES, time_moving)
                 self.__angle = (self.__angle + angle) % 360
             elif direction == Dir.LEFT:
-                angle = self._time_to_angle(TIMES_RIGHT, ANGLES_RIGHT, time_moving)
+                angle = self._time_to_angle(TIMES_LEFT, ANGLES, time_moving)
                 self.__angle = (self.__angle - angle + 360) % 360
 
             time.sleep(0.3)
@@ -124,7 +138,7 @@ class Move(BaseModule):
 
     # -115 <= dist <= 115
     def go_sm(self, dist):
-        duration = self._dist_to_time(DISTS_FORWARD, TIMES_FORWARD, abs(dist))
+        duration = self._dist_to_time(DISTS, TIMES_DIST, abs(dist))
         if dist > 0:
             self._move(Dir.FORWARD, duration)
         else:
@@ -138,10 +152,11 @@ class Move(BaseModule):
         elif angle < -180:
             angle = 360 + angle
 
-        duration = self._angle_to_time(ANGLES_RIGHT, TIMES_RIGHT, abs(angle))
         if angle > 0:
+            duration = self._angle_to_time(ANGLES, TIMES_RIGHT, abs(angle))
             self._move(Dir.RIGHT, duration)
         else:
+            duration = self._angle_to_time(ANGLES, TIMES_LEFT, abs(angle))
             self._move(Dir.LEFT, duration)
 
     # returns 0 - 360 angle between vector{x, y} and Oy
@@ -170,12 +185,12 @@ class Move(BaseModule):
             new_angle = self._calculate_new_angle(x_dest, y_dest)
             dist = self._calculate_dist_to_move(x_dest, y_dest)
 
-            # print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
-            # print(f'Направляюсь в ({x_dest}, {y_dest})')
-            # print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
-            # print(f'И проехать на {dist} см')
-            # print()
-            # time.sleep(2)
+            print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
+            print(f'Направляюсь в ({x_dest}, {y_dest})')
+            print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
+            print(f'И проехать на {dist} см')
+            print()
+            time.sleep(2)
 
             # turn to next node
             if (new_angle != self.__angle):
@@ -185,3 +200,14 @@ class Move(BaseModule):
             while dist > 0:
                 self.go_sm(min(dist, 110))
                 dist -= min(dist, 110)
+
+    def update_state(self, x: float, y: float, angle: float):
+        self.__x_cord = x
+        self.__y_cord = y
+
+        diff = (angle - self.__angle + 360) % 360
+        diff = min(diff, 360 - diff)
+        if diff < 90:
+            self.__angle = angle
+        else:
+            self.__angle = 180 - angle

@@ -112,9 +112,9 @@ class Socket:
             if elapsed_time >= duration:
                 return duration
             
-            # Here can be code to execute while waiting
-            # if emergency_stop:
-            #     return elapsed_time
+            dist = ultrasonic.get_filtered_distance()
+            if dist < cfg.CRITICAL_DIST:
+                return elapsed_time
 
             time.sleep(0.01)
 
@@ -343,13 +343,10 @@ class Socket:
                     gpio.digital_read(gpio.IRF_L),  # IRF_L
                 ]
             elif sensor_id == 0x02:
-                all_data = sorted([ultrasonic.get_distance() for _ in range(5)])
-                n = len(all_data)
-                if n % 2 == 0:
-                    median = (sorteall_datad_data[n // 2 - 1] + all_data[n // 2]) / 2
-                else:
-                    median = all_data[n // 2] 
-                data = [median]
+                data = [
+                    ultrasonic.get_filtered_distance()  # dist
+                ]
+
             self.sendbuf("\n".join([str(i) for i in data]).encode("utf-8"))
 
         elif buffer[0] == 0x43:

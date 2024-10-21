@@ -1,9 +1,12 @@
 import sys
 import os
 import keyboard
+from enum import Enum
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../modules')))
 from move import Move
+from arm import Arm
+
 
 import socket
 import time
@@ -20,13 +23,25 @@ print(f"Соединение с {host}:{port}")
 s.connect((host, port))
 s.settimeout(3)
 move = Move(s.dup())
+arm = Arm(s.dup())
 
-# x_path = [0, -90, -140]
-# y_path = [90, 130, 220]
+# x_path = [0, 90]
+# y_path = [90, -100]
 
 # move.move_along_path(x_path, y_path)
 
-move.go_sm(-40)
+class Dir(Enum):
+    FORWARD = 68
+    BACK = 69
+    RIGHT = 72
+    LEFT = 71
+
+move.set_speed(66, 62)
+
+for i in range(8):
+    move._move(Dir.RIGHT, 0.88)
+
+
 
 
 
