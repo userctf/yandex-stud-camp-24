@@ -1,13 +1,14 @@
 import math
 import socket
 import time
+from typing import List, Tuple
 import cv2
 
 from arm import Arm
 from move import Move
 from enum import Enum
 from camera_on_board import CameraOnBoard
-from base_camera import ObjectType
+from utils.enums import ObjectType, GameObjectType
 from game_map import GameMap
 from top_camera import TopCamera
 from sensors import Sensors
@@ -155,8 +156,8 @@ class Robot:
 
             self.move.go_sm(min((y_new - 150) // 10, y_new // 20))
 
-    def move_along_path(self, game_object):
-        path = self.map.get_path(game_object)
+    def move_along_path(self, game_object: GameObjectType):
+        path = self.map.find_path_to(game_object)
         self.move.move_along_path(path)
 
 
