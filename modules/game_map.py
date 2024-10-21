@@ -60,8 +60,11 @@ class GameMap:
     
     def find_path_to(self, gameobject: GameObjectType) -> List[Tuple[int, int]]:
         self.find_all_game_objects()
-        start_point = self.get_our_robot_position().get_center() # TODO: center or other point of robot???
-        end_point = self.game_objects[gameobject][0] # TODO: find [0] or the closest one?
+        start_point: Position = self.get_our_robot_position().get_center() # TODO: center or other point of robot???
+        end_point: Position = self.game_objects[gameobject][0] # TODO: find [0] or the closest one?
+        
+        start_point = self._frame_to_map_position(start_point)
+        end_point = self._frame_to_map_position(end_point)
         path: List[Tuple[int, int]] = self.a_star.search_closest_path(start_point, end_point)
         return path
     
