@@ -10,6 +10,7 @@ from typing import List
 
 class Sensors(BaseModule):
     BASE_MESSAGE = bytearray([0xff, 0x42, 0, 0, 0xff])
+    DIST_EPS = 2 #in sm
     
     def __init__(self, s: socket.socket):
         super().__init__(s.dup())
@@ -35,6 +36,10 @@ class Sensors(BaseModule):
         cmd = self.BASE_MESSAGE.copy()
         cmd[2] = 0x02
         return float(self._send_and_get(cmd))
+    
+    def check_border(self, expected_dist_sm: float) -> bool:
+        dist = self.get_ultrasonic_dist()
+        return dist - expected_dist < self.DIST_EPS
 
         
 if __name__ == "__main__":
@@ -49,4 +54,4 @@ if __name__ == "__main__":
     # Устанавливаем соединение
     s.connect((host, port))
     S = Sensors(s.dup())
-    print(S.get_IR_up())
+    print(S.get_ultrasonic_dist())
