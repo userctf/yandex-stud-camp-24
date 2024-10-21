@@ -16,7 +16,7 @@ from sensors import Sensors
 ON_BOARD_CAMERA_URL = "http://192.168.2.106:8080/?action=stream"
 ON_BOARD_NEURAL_MODEL = "robot_camera_detector/1"
 ON_BOARD_API_KEY = "uGu8WU7fJgR8qflCGaqP"
-# Top camera parameters
+# Top board_camera parameters
 TOP_CAMERA_URL = "rtsp://Admin:rtf123@192.168.2.250:554/1"
 TOP_CAMERA_NEURAL_MODEL = 'detecting_objects-ygnzn/1'
 TOP_CAMERA_API_KEY = "d6bnjs5HORwCF1APwuBX"
@@ -28,7 +28,7 @@ class Robot:
         self.move = Move(s)
         self.top_camera = TopCamera(TOP_CAMERA_URL, TOP_CAMERA_NEURAL_MODEL, TOP_CAMERA_API_KEY)
         self.map = GameMap(self.top_camera)
-        self.camera = CameraOnBoard(ON_BOARD_CAMERA_URL, ON_BOARD_NEURAL_MODEL, ON_BOARD_API_KEY)
+        self.board_camera = CameraOnBoard(ON_BOARD_CAMERA_URL, ON_BOARD_NEURAL_MODEL, ON_BOARD_API_KEY)
         # Need to add sensors
 
     def __get_angle_to_object(self, x_obj: int, y_obj: int) -> int:
@@ -43,7 +43,7 @@ class Robot:
     def __find_object(self, game_object: ObjectType) -> bool:
         for i in range(1, 5):
             self.move.go_sm(-10) # Надо проверить, что может ехать назад
-            x, y = self.camera.get_len_to(game_object)
+            x, y = self.board_camera.get_len_to(game_object)
             if (x, y) != (-1, -1):
                 return True
 
@@ -53,14 +53,20 @@ class Robot:
             self.move.turn_deg((-1)**i * (angle * i))
             # print(f'Here: {i}')
 
-            x, y = self.camera.get_len_to(game_object)
+            x, y = self.board_camera.get_len_to(game_object)
             if (x, y) != (-1, -1):
                 return True
         return False
 
+    def check_taking_object(self, game_object: ObjectType) -> bool:
+        x, y = self.board_camera.get_len_to(game_object)
+        if (x, y) == (-1, -1):
+            return True
+        return False
+
     def find_and_grab_object(self, game_object: ObjectType) -> bool:
         while True:
-            x, y = self.camera.get_len_to(game_object)
+            x, y = self.board_camera.get_len_to(game_object)
             # print(f"Distance im mm: x{x}, y{y}")
 
             if (x, y) == (-1, -1):
@@ -77,14 +83,14 @@ class Robot:
             if y < 220 and abs(x) < 40:  # MAGIC NUMBER
                 self.arm.grab(y + 30)
                 time.sleep(0.5)
-                return True
+                return self.check_taking_object(game_object)
 
             # Turn towards object
             angle = self.__get_angle_to_object(x_obj=x, y_obj=y)
             self.move.turn_deg(angle * 0.5)
 
             # Recalc dist after turn
-            x, y = self.camera.get_len_to(ObjectType.CUBE)
+            x, y = self.board_camera.get_len_to(ObjectType.CUBE)
 
             # Move towards object
             self.move.go_sm(y // 20)
@@ -92,7 +98,7 @@ class Robot:
     def throw_in_basket(self) -> bool:
         game_object = ObjectType.BASKET
         while True:
-            x, y = self.camera.get_len_to(game_object)
+            x, y = self.board_camera.get_len_to(game_object)
             # print(f'Distance to object: x {x}, y {y}')
             if (x, y) == (-1, -1):
                 if not self.__find_object(game_object):
@@ -101,7 +107,7 @@ class Robot:
             angle = self.__get_angle_to_object(x, y)
             self.move.turn_deg(angle)
 
-            x_new, y_new = self.camera.get_len_to(game_object)
+            x_new, y_new = self.board_camera.get_len_to(game_object)
 
             if y_new <= 160:
                 if x_new <= 30:
