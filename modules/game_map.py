@@ -163,6 +163,7 @@ class GameMap:
         frame = self.top_camera.fix_eye(frame, self.is_left)
 
         _, w, h = self.top_camera.get_game_arena(frame)
+        print("Frame borders are:", w, h)
         self.limits = [w, h]
 
     def _frame_to_map_position(self, position: Position) -> Position:

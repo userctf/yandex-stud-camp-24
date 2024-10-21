@@ -66,7 +66,7 @@ class AStarSearcher:
         self.GRID_SIZE = 10.0    # TODO: fine-tune so robot does no hits walls!
         self.ROBOT_RADIUS = 20.0 # TODO: fine-tune so robot does no hits walls!
 
-        self._show_animation = False
+        self._show_animation = True
         x_obstacle = [x for x, _ in obstacles]
         y_obstacle = [y for _, y in obstacles]
         self._path = self.__get_path()

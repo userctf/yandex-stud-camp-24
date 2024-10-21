@@ -74,12 +74,13 @@ class Move(BaseModule):
 
 
     # 0 < duration in seconds < 2.55
-    def _move(self, direction : Dir, duration : float):
+    def _move(self, direction : Dir, duration : float, emergency_stop : bool = True):
         if (0 < duration and duration < 2.55):
             time_moving = 0
             msg = BASE_MESSAGE.copy()
             msg[1] = direction.value
             msg[2] = int(duration * 100)
+            msg[3] = emergency_stop
             self._send(msg)
             while True:
                 response = self._get_response()
@@ -137,10 +138,10 @@ class Move(BaseModule):
     
 
     # -115 <= dist <= 115
-    def go_sm(self, dist):
+    def go_sm(self, dist, emergency_stop : bool = True):
         duration = self._dist_to_time(DISTS, TIMES_DIST, abs(dist))
         if dist > 0:
-            self._move(Dir.FORWARD, duration)
+            self._move(Dir.FORWARD, duration, emergency_stop)
         else:
             self._move(Dir.BACK, duration)
 
@@ -175,34 +176,27 @@ class Move(BaseModule):
     def _calculate_dist_to_move(self, dest_x, y_dest):
         return math.sqrt((self.__x_cord - dest_x)**2 + (self.__y_cord - y_dest)**2)
 
-    def move_along_path(self, path: list[tuple[int, int]], stop_before_target=True):
-        # iterate over nodes
-        for x_dest, y_dest in path:
-            # skip if position has not changed
-            if (self.__x_cord == x_dest and self.__y_cord == y_dest):
-                continue
-                
+    def move_to_point(self, x_dest : int, y_dest : int, stop_before_target=True):
             new_angle = self._calculate_new_angle(x_dest, y_dest)
             dist = self._calculate_dist_to_move(x_dest, y_dest)
-            if (x_dest, y_dest) == path[-1] and stop_before_target:
+            if stop_before_target:
                 dist = dist // 2
 
-            print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
-            print(f'Направляюсь в ({x_dest}, {y_dest})')
-            print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
-            print(f'И проехать на {dist} см')
-            print()
-            time.sleep(2)
+            # print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
+            # print(f'Направляюсь в ({x_dest}, {y_dest})')
+            # print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
+            # print(f'И проехать на {dist} см')
+            # print()
+            # time.sleep(2)
 
-            # turn to next node
+            # turn to the destination
             if (new_angle != self.__angle):
                 self.turn_deg(new_angle - self.__angle)
 
-            # move to next node
+            # move to the destination
             while dist > 0:
                 self.go_sm(min(dist, 95))
                 dist -= min(dist, 95)
-            break
 
     def update_state(self, x: float, y: float, angle: float):
         HEIGHT = 321
