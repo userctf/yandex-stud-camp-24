@@ -9,20 +9,8 @@ from utils.enums import GameObjectType, GameObjectPosition, ObjectType
 
 IS_LEFT = True
 
-LIGHT_THRESHOLD = 225
-MIN_AREA_THRESHOLD = 150
-
-COLORS = {
-    "red": [
-        (np.array([0, 50, 50]),
-         np.array([10, 255, 255]),),
-        (np.array([170, 50, 50]),
-         np.array([180, 255, 255]),)
-    ],
-    "green": [
-        (np.array([35, 25, 25]), np.array([70, 255, 255])),
-    ]
-}
+LIGHT_THRESHOLD = 220
+MIN_AREA_THRESHOLD = 100
 
 
 class Position:
@@ -73,6 +61,9 @@ class GameObject:
 
     def get_approach_points(self) -> List[Position]:
         pass
+
+    def __repr__(self):
+        return f"{self.type} with center {self.position}. Last seen at {self.last_seen}"
 
 
 class GameMap:
@@ -131,6 +122,7 @@ class GameMap:
 
         if not filtered_contours:
             print("Can't determine robot angle")
+            print([cv2.contourArea(cnt) for cnt in contours])
             height, width = bright_mask.shape
             return Position(width // 2, height // 2, -1)
 
@@ -164,12 +156,13 @@ class GameMap:
 
     def find_all_game_objects(self):
         # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
-        frame = self.top_camera.get_photo()
-        # frame = cv2.imread("output_frame_0221_fixed.png")
+        # frame = self.top_camera.get_photo()
+        frame = cv2.imread("img.png")
         frame = self.top_camera.fix_eye(frame, IS_LEFT)
 
         x, y, w, h = self.top_camera.get_game_arena_size(frame)
         frame = frame[y:y + h, x:x + w]
+
         predicts = self.top_camera.predict(frame)
 
         for predict in predicts:
@@ -182,8 +175,13 @@ class GameMap:
                     robot_type,
                 )]
                 print(self.game_objects[GameObjectType.OUR_ROBOT])
+                print(self.game_objects[GameObjectType.BAD_ROBOT])
             elif predict.object_type == ObjectType.CUBE:
                 print("CUBE!!!")
+
+        cv2.imshow("frame", frame)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
@@ -191,3 +189,5 @@ if __name__ == "__main__":
                        api_key="d6bnjs5HORwCF1APwuBX")
     game_map = GameMap(camera)
     game_map.find_all_game_objects()
+    camera.stopped = True
+    cv2.destroyAllWindows()
