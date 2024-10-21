@@ -205,8 +205,9 @@ class Move(BaseModule):
             break
 
     def update_state(self, x: float, y: float, angle: float):
+        HEIGHT = 321
         self.__x_cord = x
-        self.__y_cord = y
+        self.__y_cord = HEIGHT - y
 
         diff = (angle - self.__angle + 360) % 360
         diff = min(diff, 360 - diff)
