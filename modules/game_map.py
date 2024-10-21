@@ -203,6 +203,10 @@ class GameMap:
 
         self.game_objects = new_game_objects
 
+    def get_path(self) -> List[Tuple[int, int]]:
+        path = [(0, 0), (0, 0)]
+        return path
+
 
 if __name__ == "__main__":
     camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1',
