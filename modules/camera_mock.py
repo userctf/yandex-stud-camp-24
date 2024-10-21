@@ -47,7 +47,7 @@ class CameraMock():
         contours, hierarchy = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return contours
     
-    def get_photos(self) -> np.ndarray:
+    def get_photo(self) -> np.ndarray:
         imgs = []
         for file in listdir("imgs"):
             if isfile(join("imgs", file)) and (file.endswith(".png") or file.endswith(".jpg")):
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     camera = CameraMock("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1',
                        api_key="d6bnjs5HORwCF1APwuBX")
     while True:
-        img = camera.get_photos()
+        img = camera.get_photo()
         img = camera.fix_eye(img, True)
         img = camera.get_game_arena(img)[0]
         cv2.imshow('kek', img)
