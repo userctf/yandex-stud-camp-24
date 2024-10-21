@@ -12,7 +12,7 @@ class CameraMock():
                             [0., 0., 1.]])
     left_dist_coefs = np.array([-0.2, 0.05, 0, 0, 0])
 
-    def __init__(self):
+    def __init__(self, stream_url: str, neural_model: str, api_key: str):
         self.last_image_index = 0
         self.cropping_data = None
 
@@ -134,7 +134,8 @@ class CameraMock():
    
    
 if __name__ == '__main__':
-    camera = CameraMock()
+    camera = CameraMock("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1',
+                       api_key="d6bnjs5HORwCF1APwuBX")
     while True:
         img = camera.get_photos()
         img = camera.fix_eye(img, True)
