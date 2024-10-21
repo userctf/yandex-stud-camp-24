@@ -7,19 +7,8 @@ from math import ceil
 import matplotlib.pyplot as plt
 import numpy as np
 
-from base_camera import ObjectType
+from game_map import GameObject, Position
 from move import Move
-
-
-class GameObject:
-    objtype: ObjectType
-    x: int
-    y: int
-
-    def __init__(self, x: int, y: int, objtype=ObjectType.UNKNOWN):
-        self.objtype = objtype
-        self.x = x
-        self.y = y
 
 
 class _PriorityQueue:
@@ -117,9 +106,12 @@ class AStarSearcher:
             return False
         return True
 
-    def add_obstacles(self, obstacles: List[GameObject]):
-        x_obstacle = [x for x, _ in obstacles]
-        y_obstacle = [y for _, y in obstacles]
+    def add_obstacles(self, obstacles: List[Position]):
+        x_obstacle: List[int] = []
+        y_obstacle: List[int] = []
+        for obstacle in obstacles:
+            x_obstacle.append(obstacle.x)
+            y_obstacle.append(obstacle.y)
         self.__create_obstacle_map(x_obstacle, y_obstacle)
 
     def __create_obstacle_map(self, x_obstacle, y_obstacle):
@@ -175,7 +167,7 @@ class AStarSearcher:
 
     # Returns a shortest path between 2 points. Contains `start` and `end` points as the first and the last vertexes of the pat
     def search_closest_path(
-        self, start: GameObject, end: GameObject
+        self, start: Position, end: Position
     ) -> List[Tuple[int, int]]:
         start_x, start_y = map(int, (start.x, start.y))
         end_x, end_y = map(int, (end.x, end.y))
@@ -366,9 +358,9 @@ def _gen_default_walls():
     return walls
     
 
-def _gen_points() -> Tuple[GameObject, GameObject]:
-    start = GameObject(50, 50)
-    end = GameObject(270, 240)
+def _gen_points() -> Tuple[Position, Position]:
+    start = Position(50, 50)
+    end = Position(270, 240)
     return start, end
 
 
