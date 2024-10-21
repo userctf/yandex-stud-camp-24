@@ -7,7 +7,11 @@ from copy import deepcopy
 from base_camera import Prediction
 
 from top_camera import TopCamera
+
 from utils.enums import GameObjectType, GameStartState, ObjectType
+from utils.position import Position
+from utils.gameobject import GameObject, Base
+import a_star
 
 IS_LEFT = True
 
@@ -16,42 +20,6 @@ VIRTUAL_WIDTH = 400
 
 LIGHT_THRESHOLD = 220
 MIN_AREA_THRESHOLD = 100
-
-
-class Position:
-    def __init__(self, x: int, y: int, angle: float = 0):
-        self.x: int = x
-        self.y: int = y
-        self.angle: float = angle
-
-    def __iter__(self):
-        yield self.x
-        yield self.y
-        yield self.angle
-
-    def __add__(self, other):
-        return Position(self.x + other.x, self.y + other.y, self.angle)
-
-    def __iadd__(self, other):
-        self.x += other.x
-        self.y += other.y
-        return self
-
-    def __repr__(self):
-        return f"({self.x}, {self.y}), angle is {self.angle}"
-
-
-GAME_STATE_TEMPLATE = {
-    GameObjectType.CUBE: GameStartState.UNKNOWN,
-    GameObjectType.BALL: GameStartState.UNKNOWN,
-    GameObjectType.GREEN_BASE: GameStartState.UNKNOWN,
-    GameObjectType.RED_BASE: GameStartState.UNKNOWN,
-    GameObjectType.OUR_ROBOT: GameStartState.OUTER_START_LIKE,
-    GameObjectType.BAD_ROBOT: GameStartState.OUTER_START_LIKE,
-    GameObjectType.BTN_PINK_BLUE: GameStartState.UNKNOWN,
-    GameObjectType.BTN_GREEN_ORANGE: GameStartState.UNKNOWN,
-}
-
 GAME_OBJECTS_TEMPLATE = {
     GameObjectType.CUBE: [],
     GameObjectType.BALL: None,
@@ -63,25 +31,6 @@ GAME_OBJECTS_TEMPLATE = {
     GameObjectType.BTN_GREEN_ORANGE: None,
 }
 
-
-class GameObject:
-    def __init__(self, position: Position, size: Tuple[float, float], object_type: GameObjectType):
-        self.position = position
-        self.w = int(size[0])
-        self.h = int(size[1])
-        self.last_seen = time.time()
-        self.type = object_type
-
-    def get_center(self) -> Position:
-        return self.position
-
-    def get_approach_points(self) -> List[Position]:
-        pass
-
-    def __repr__(self):
-        return f"{self.type} with center {self.position}. Last seen at {self.last_seen}"
-
-
 class GameMap:
     def __init__(self, top_camera: TopCamera, color: str = "red"):
         self.top_camera = top_camera
@@ -92,8 +41,32 @@ class GameMap:
         self.color = color
         self.limits = []  # первый элемент изменение по оси х, второй по оси у
         self._set_frame_limits()
-        self.set_up_field()
 
+        self.set_up_field()
+        
+        self.a_star : a_star.AStarSearcher = GameMap._init_star(self.inner_boards, self.outer_boards)
+        
+    @staticmethod
+    def _init_star(inner_boards, outer_boards) -> a_star.AStarSearcher:
+        walls: List[Tuple[int, int]] = a_star.gen_default_walls()
+        if inner_boards == GameObjectPosition.HORIZONTAL:
+            walls += a_star.gen_up_down_inner_walls()
+        elif inner_boards == GameObjectPosition.VERTICAL:
+            walls += a_star.gen_left_right_inner_walls()
+            
+        if  outer_boards == GameObjectPosition.HORIZONTAL:
+            walls += a_star.gen_up_down_outer_walls()
+        elif outer_boards == GameObjectPosition.VERTICAL:
+            walls += a_star.gen_left_right_outer_walls()
+        return a_star.AStarSearcher(walls)
+
+    def find_path_to(self, gameobject: GameObjectType) -> List[Tuple[int, int]]:
+        self.find_all_game_objects()
+        start_point = self.get_our_robot_position().get_center() # TODO: center or other point of robot???
+        end_point = self.game_objects[gameobject][0] # TODO: find [0] or the closest one?
+        path: List[Tuple[int, int]] = self.a_star.search_closest_path(start_point, end_point)
+        return path
+      
     @staticmethod
     def _crop_to_robot(image: np.ndarray, robot: Prediction) -> Tuple[np.ndarray, Position]:
         top, bottom = robot.get_coords()
@@ -219,9 +192,9 @@ class GameMap:
         conv_width, conv_height, _ = self._frame_to_map_position(Position(width, height))
 
         self.game_objects[GameObjectType.GREEN_BASE] = [
-            GameObject(green_position, (conv_width, conv_height), GameObjectType.GREEN_BASE)]
+            Base(green_position, (conv_width, conv_height), GameObjectType.GREEN_BASE)]
         self.game_objects[GameObjectType.RED_BASE] = [
-            GameObject(red_position, (conv_width, conv_height), GameObjectType.RED_BASE)]
+            Base(red_position, (conv_width, conv_height), GameObjectType.RED_BASE)]
 
     def get_our_robot_position(self) -> GameObject:
         return self.game_objects[GameObjectType.OUR_ROBOT][0]
@@ -249,6 +222,7 @@ class GameMap:
                     print(self.game_objects[GameObjectType.GREEN_BASE])
                     print(self.game_objects[GameObjectType.RED_BASE])
             break
+
 
     def find_all_game_objects(self):
         # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
