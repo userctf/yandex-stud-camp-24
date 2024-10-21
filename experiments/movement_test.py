@@ -5,6 +5,8 @@ from enum import Enum
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../modules')))
 from move import Move
+from arm import Arm
+
 
 import socket
 import time
@@ -21,6 +23,7 @@ print(f"Соединение с {host}:{port}")
 s.connect((host, port))
 s.settimeout(3)
 move = Move(s.dup())
+arm = Arm(s.dup())
 
 # x_path = [0, 90]
 # y_path = [90, -100]
@@ -34,7 +37,10 @@ class Dir(Enum):
     LEFT = 71
 
 move.set_speed(66, 62)
-move._move(Dir.FORWARD, 0.1)
+
+for i in range(8):
+    move._move(Dir.RIGHT, 0.88)
+
 
 
 
