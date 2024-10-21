@@ -9,8 +9,8 @@ from enum import Enum
 SLEEP_TIME = 0
 BASE_MESSAGE = bytearray([255, 0, 0, 0, 255])
 
-DISTS_FORWARD = [0, 2, 10, 23, 47, 92, 115]
-TIMES_FORWARD = [0, 0.1, 0.25, 0.5, 1, 2, 2.54]
+DISTS_FORWARD = [0, 8, 12, 20, 39, 59, 77, 98]
+TIMES_FORWARD = [0, 0.2, 0.3, 0.5, 1, 2, 2.54]
 
 ANGLES_RIGHT = [0, 10, 20, 30, 45, 90, 120, 180]
 TIMES_RIGHT = [0, 0.13, 0.2, 0.27, 0.3, 0.6, 0.75, 1.05]
@@ -57,6 +57,19 @@ class Move(BaseModule):
         msg = BASE_MESSAGE.copy()
         msg[2] = 4
         self._send(msg)
+
+    def set_speed(self, l_speed : int, r_speed: int):
+        msg = BASE_MESSAGE.copy()
+        msg[1] = 2
+
+        msg[2] = 1
+        msg[3] = r_speed
+        self._send(msg)
+
+        msg[2] = 2
+        msg[3] = l_speed
+        self._send(msg)
+
 
 
     # 0 < duration in seconds < 2.55
@@ -170,12 +183,12 @@ class Move(BaseModule):
             new_angle = self._calculate_new_angle(x_dest, y_dest)
             dist = self._calculate_dist_to_move(x_dest, y_dest)
 
-            # print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
-            # print(f'Направляюсь в ({x_dest}, {y_dest})')
-            # print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
-            # print(f'И проехать на {dist} см')
-            # print()
-            # time.sleep(2)
+            print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
+            print(f'Направляюсь в ({x_dest}, {y_dest})')
+            print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
+            print(f'И проехать на {dist} см')
+            print()
+            time.sleep(2)
 
             # turn to next node
             if (new_angle != self.__angle):
@@ -185,3 +198,14 @@ class Move(BaseModule):
             while dist > 0:
                 self.go_sm(min(dist, 110))
                 dist -= min(dist, 110)
+
+    def update_state(self, x: float, y: float, angle: float):
+        self.__x_cord = x
+        self.__y_cord = y
+
+        diff = (angle - self.__angle + 360) % 360
+        diff = min(diff, 360 - diff)
+        if diff < 90:
+            self.__angle = angle
+        else:
+            self.__angle = 180 - angle
