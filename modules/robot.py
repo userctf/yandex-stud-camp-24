@@ -158,7 +158,6 @@ class Robot:
 
     def move_along_path(self, game_object: GameObjectType):
         path = self.map.find_path_to(game_object)
-
         self.move.move_along_path(path)
 
 

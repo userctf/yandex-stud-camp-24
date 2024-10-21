@@ -56,8 +56,7 @@ class GameMap:
         elif outer_boards == GameObjectPosition.VERTICAL:
             walls += a_star.gen_left_right_outer_walls()
         return a_star.AStarSearcher(walls)
-    
-    
+
     def find_path_to(self, gameobject: GameObjectType) -> List[Tuple[int, int]]:
         self.find_all_game_objects()
         start_point = self.get_our_robot_position().get_center() # TODO: center or other point of robot???
@@ -169,8 +168,6 @@ class GameMap:
                 if predict.object_type == ObjectType.CUBE:
                     pass
 
-
-
     def find_all_game_objects(self):
         # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
         frame = self.top_camera.get_photo()
@@ -178,7 +175,6 @@ class GameMap:
         frame = self.top_camera.fix_eye(frame, IS_LEFT)
 
         frame, w, h = self.top_camera.get_game_arena(frame)
-
 
         predicts = self.top_camera.predict(frame)
         print(predicts)
@@ -202,10 +198,6 @@ class GameMap:
                 )
 
         self.game_objects = new_game_objects
-
-    def get_path(self) -> List[Tuple[int, int]]:
-        path = [(0, 0), (0, 0)]
-        return path
 
 
 if __name__ == "__main__":

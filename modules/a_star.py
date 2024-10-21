@@ -90,7 +90,7 @@ class AStarSearcher:
         return round((position - min_position) / self.GRID_SIZE)
 
     def __calc_grid_idx(self, node):
-        return (node.y) * self._x_width + (node.x)
+        return node.y * self._x_width + node.x
 
     def __check_validity(self, node):
         x_position = self.__calc_grid_position(node.x, 0)
@@ -166,7 +166,6 @@ class AStarSearcher:
 
         return x_out_path, y_out_path
 
-
     # Returns a shortest path between 2 points. Contains `start` and `end` points as the first and the last vertexes of the pat
     def search_closest_path(
         self, start: Position, end: Position
@@ -212,7 +211,6 @@ class AStarSearcher:
                     plt.plot(x_out_path, y_out_path, "r")
                     plt.show()
                 return approx_path[::-1]
-                
 
             closest_node = state.get()
             if self.__calc_grid_idx(closest_node) in record_closed:
@@ -289,6 +287,7 @@ def gen_obstacles(lower_left: Tuple[int, int], upper_right: Tuple[int, int]) -> 
             obstacles.append((x, y))
     return obstacles
 
+
 def gen_end_of_world_walls():
     LOWER_LEFT : List[Tuple[int, int]] = gen_obstacles((0,0), (5, 320))
     
@@ -311,6 +310,7 @@ def gen_column() -> List[Tuple[int, int]]:
     
     return LOWER_LEFT + UPPER_LEFT + LOWER_RIGHT + UPPER_RIGHT
 
+
 def gen_outer_walls() -> List[Tuple[int, int]]:
     LOWER_LEFT : List[Tuple[int, int]] = gen_obstacles((105, 55), (110, 125)) + gen_obstacles((105, 55), (165, 60))
     
@@ -321,6 +321,7 @@ def gen_outer_walls() -> List[Tuple[int, int]]:
     LOWER_RIGHT : List[Tuple[int, int]] = gen_obstacles((235, 55), (295, 60)) + gen_obstacles((290, 55), (295, 125))
     
     return LOWER_LEFT + UPPER_LEFT + LOWER_RIGHT + UPPER_RIGHT
+
 
 def gen_left_right_inner_walls() -> List[Tuple[int, int]]:
     LEFT: List[Tuple[int, int]] = gen_obstacles((160, 125), (165, 200))
@@ -338,17 +339,19 @@ def gen_up_down_inner_walls() -> List[Tuple[int, int]]:
     return UP +DOWN
 
 
-def _gen_left_right_outer_walls():
+def gen_left_right_outer_walls():
     LEFT : List[Tuple[int, int]] = gen_obstacles((105, 125), (110, 195))
     RIGHT: List[Tuple[int, int]] = gen_obstacles((290, 125), (295, 195))
     return LEFT + RIGHT
 
-def _gen_up_down_outer_walls():
+
+def gen_up_down_outer_walls():
     UP: List[Tuple[int, int]] = gen_obstacles((165, 60), (235, 55))
     
     DOWN: List[Tuple[int, int]] = gen_obstacles((165, 260), (235, 265))
 
     return UP + DOWN
+
 
 def gen_default_walls():
     walls = [(1, 1), (400, 320)]
