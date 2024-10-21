@@ -16,6 +16,7 @@ class TopCamera(BaseCamera):
 
     def __init__(self, stream_url: str, neural_model: str, api_key: str):
         super().__init__(stream_url, neural_model, api_key)
+        self.cropping_data = None # M, (width, height)
 
     @staticmethod
     def fix_eye(frame: np.ndarray, is_left: bool) -> np.ndarray:  # IMPORTANT: it crops a little bit
@@ -49,14 +50,21 @@ class TopCamera(BaseCamera):
         return contours
 
     def get_game_arena(self, frame: np.ndarray) -> (np.ndarray, int, int):
-        min_area_box = self.__get_game_arena_min_box(frame)
+        # using precalced data if possible
+        if self.cropping_data == None:
+            min_area_box = self.__get_game_arena_min_box(frame)
+            box = np.int0(cv2.boxPoints(min_area_box))
+            width, height = int(min_area_box[1][0]), int(min_area_box[1][1])
+            
+            src_pts = box.astype('float32')
+            dst_pts = np.array([[0, height-1], [0, 0], [width-1, 0], [width-1, height-1]], dtype='float32')
+            M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+            
+            self.cropping_data = M, (width, height)
         
-        box = np.int0(cv2.boxPoints(min_area_box))
-        width, height = int(min_area_box[1][0]), int(min_area_box[1][1])
-
-        src_pts = box.astype('float32')
-        dst_pts = np.array([[0, height-1], [0, 0], [width-1, 0], [width-1, height-1]], dtype='float32')
-        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        M = self.cropping_data[0]
+        width, height = self.cropping_data[1]
+        
         img_crop = cv2.warpPerspective(frame, M, (width, height))
         
         return img_crop, width, height
