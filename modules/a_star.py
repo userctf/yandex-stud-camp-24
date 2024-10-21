@@ -7,8 +7,10 @@ from math import ceil
 import matplotlib.pyplot as plt
 import numpy as np
 
-from game_map import GameObject, Position
 from move import Move
+from utils.gameobject import GameObject
+from utils.position import Position
+from utils.enums import GameObjectType, GameObjectPosition, ObjectType
 
 
 class _PriorityQueue:
