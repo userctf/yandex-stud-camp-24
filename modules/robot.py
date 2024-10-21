@@ -177,7 +177,7 @@ class Robot:
             self.move.move_to_point(*path[0], stop_before_target=(len(path) == 1))
             time.sleep(1)
             self.map.find_all_game_objects()
-            map_robot = self.map.get_our_robot_position()
+            map_robot = self.map.get_our_robot()
             if time.time() - map_robot.last_seen < 0.3:
                 self.move.update_state(*map_robot.position)
             path = self.map.find_path_to(game_object)
@@ -197,8 +197,8 @@ if __name__ == '__main__':
 
     robot = Robot(s, is_left=False, color="red")
     robot.map.find_all_game_objects()
-    print(robot.map.get_our_robot_position())
-    robot.move.update_state(*(robot.map.get_our_robot_position().position))
+    print(robot.map.get_our_robot())
+    robot.move.update_state(*(robot.map.get_our_robot().position))
     robot.move_along_path(GameObjectType.CUBE)
     print("Дошли до куба")
     robot.find_and_grab_object(ObjectType.CUBE)
