@@ -70,8 +70,8 @@ class AStarSearcher:
     def __init__(self, obstacles: List[Tuple[int, int]]):
         self.HEIGHT = 321
         self.WIDTH = 401
-        self.GRID_SIZE = 5.0    # TODO: fine-tune so robot does no hits walls!
-        self.ROBOT_RADIUS = 20.0 # TODO: fine-tune so robot does no hits walls!
+        self.GRID_SIZE = 8.0    # TODO: fine-tune so robot does no hits walls!
+        self.ROBOT_RADIUS = 16.0 # TODO: fine-tune so robot does no hits walls!
 
         self._show_animation = True
         x_obstacle = [x for x, _ in obstacles]
@@ -200,8 +200,23 @@ class AStarSearcher:
 
         while True:
             if len(state.elements) == 0:
-                print("Check Record Validity")
-                break
+                print("[WARN] Astar could not find path, returning a path to the closest reachable point")
+                closest_node = None
+                for node in record_open.values():
+                    if closest_node  is None or self.__calc_heuristic(node, end_node) <= self.__calc_heuristic(closest_node, end_node):
+                        closest_node = node
+                x_out_path, y_out_path = self.__calc_final_path(closest_node, record_closed)
+                approx_path = _transform_path(x_out_path, y_out_path)
+                if self._show_animation:
+                    x_out_path = []
+                    y_out_path = []
+                    for point in approx_path:
+                        x_out_path.append(point[0][0])
+                        y_out_path.append(point[0][1])
+                    plt.plot(x_out_path, y_out_path, "r")
+                    plt.show()
+                return approx_path[::-1]
+                
 
             closest_node = state.get()
             if self.__calc_grid_idx(closest_node) in record_closed:
@@ -267,7 +282,7 @@ class AStarSearcher:
 
 def _gen_points() -> Tuple[GameObject, GameObject]:
     start = GameObject(50, 50)
-    end = GameObject(320, 240)
+    end = GameObject(270, 240)
     return start, end
 
 
