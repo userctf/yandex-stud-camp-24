@@ -5,6 +5,7 @@ from typing import List, Tuple
 import cv2
 
 from arm import Arm
+from modules.utils.position import Position
 from move import Move
 from enum import Enum
 from camera_on_board import CameraOnBoard
@@ -169,7 +170,7 @@ class Robot:
             self.move.go_sm(min((y_new - 150) // 10, y_new // 20))
 
     def move_along_path(self, game_object: GameObjectType):
-        path = self.map.find_path_to(game_object)
+        path = self.map.find_path_to(self.move.get_position(), game_object)
         while len(path) > 0:
             self.move.move_to_point(*path[0], stop_before_target=(len(path) == 1))
             time.sleep(1)
@@ -177,7 +178,7 @@ class Robot:
             map_robot = self.map.get_our_robot()
             if time.time() - map_robot.last_seen < 0.3:
                 self.move.update_state(*map_robot.position)
-            path = self.map.find_path_to(game_object)
+            path = self.map.find_path_to(self.move.get_position(), game_object)
 
 
 
