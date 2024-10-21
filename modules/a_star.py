@@ -59,17 +59,19 @@ class Node:
 def _transform_path(x_path, y_path):
     new_path = np.array(list(zip(x_path, y_path))).astype(np.float32)
     path_len = cv2.arcLength(new_path, False)
-    epsilon = 0.05 * path_len  # TODO: подобрать epsilon!!!!
+    epsilon = 0.025 * path_len  # TODO: подобрать epsilon!!!!
+                                # Больше epsilon => ровнее путь, но может начать задевать[проходить через] стены
+                                # Меньше epsilon => в ломаной пути больше вершин, но точно далеко от стен
     approx = cv2.approxPolyDP(new_path, epsilon, False)
     return approx
 
 
 class AStarSearcher:
     def __init__(self, obstacles: List[Tuple[int, int]]):
-        self.HEIGHT = 401
-        self.WIDTH = 321
-        self.GRID_SIZE = 4.0
-        self.ROBOT_RADIUS = 10.0
+        self.HEIGHT = 321
+        self.WIDTH = 401
+        self.GRID_SIZE = 5.0    # TODO: fine-tune so robot does no hits walls!
+        self.ROBOT_RADIUS = 20.0 # TODO: fine-tune so robot does no hits walls!
 
         self._show_animation = True
         x_obstacle = [x for x, _ in obstacles]
@@ -85,7 +87,7 @@ class AStarSearcher:
 
     @staticmethod
     def __calc_heuristic(num1, num2):
-        weight = 3.0
+        weight = 3
         return weight * (abs(num1.x - num2.x) ** 2 + abs(num1.y - num2.y) ** 2) ** 0.5
 
     def __calc_grid_position(self, idx, p):
@@ -168,6 +170,8 @@ class AStarSearcher:
 
         return x_out_path, y_out_path
 
+
+    # Returns a shortest path between 2 points. Contains `start` and `end` points as the first and the last vertexes of the pat
     def search_closest_path(
         self, start: GameObject, end: GameObject
     ) -> List[Tuple[int, int]]:
@@ -195,7 +199,6 @@ class AStarSearcher:
         state.put(start_node, start_node.cost)
 
         while True:
-            print(state.elements)
             if len(state.elements) == 0:
                 print("Check Record Validity")
                 break
@@ -213,7 +216,7 @@ class AStarSearcher:
                     plt.pause(0.001)
 
             if closest_node.x == end_node.x and closest_node.y == end_node.y:
-                print("Finished!")
+                print("Astar Finished!")
                 end_node.path = closest_node.path
                 end_node.cost = closest_node.cost
                 break
@@ -250,7 +253,6 @@ class AStarSearcher:
                         state.put(next_node, next_node.cost)
 
         x_out_path, y_out_path = self.__calc_final_path(end_node, record_closed)
-        print([(x, y) for x, y in zip(x_out_path, y_out_path)])
         approx_path = _transform_path(x_out_path, y_out_path)
         if self._show_animation:
             x_out_path = []
@@ -258,35 +260,81 @@ class AStarSearcher:
             for point in approx_path:
                 x_out_path.append(point[0][0])
                 y_out_path.append(point[0][1])
-            print(x_out_path, y_out_path)
             plt.plot(x_out_path, y_out_path, "r")
             plt.show()
-        return approx_path
+        return approx_path[::-1]
 
 
 def _gen_points() -> Tuple[GameObject, GameObject]:
-    start = GameObject(100, 100)
-    end = GameObject(300, 300)
+    start = GameObject(50, 50)
+    end = GameObject(320, 240)
     return start, end
 
 
-def _gen_obstacles(lower: int, upper: int) -> List[Tuple[int, int]]:
-    obstacles = [(1, 1), (320, 320)]
-    for x in range(lower, upper):
-        for y in range(lower, upper):
+def _gen_obstacles(lower_left: Tuple[int, int], upper_right: Tuple[int, int]) -> List[Tuple[int, int]]:
+    obstacles = [(1, 1), (400, 320)]
+    lower_left = list(lower_left)
+    upper_right = list(upper_right)
+    for i in range(2):
+        if(lower_left[i] >= upper_right[i]):
+            lower_left[i], upper_right[i] = upper_right[i], lower_left[i]
+            
+    for x in range(lower_left[0], upper_right[0] + 1):
+        for y in range(lower_left[1], upper_right[1] + 1):
             obstacles.append((x, y))
     return obstacles
 
+def _gen_outer_walls():
+    LOWER_LEFT : List[Tuple[int, int]] = _gen_obstacles((0,0), (5, 320))
+    
+    UPPER_LEFT: List[Tuple[int, int]] = _gen_obstacles((0, 315), (400, 320))
+    
+    UPPER : List[Tuple[int, int]] = _gen_obstacles((395, 0), (400, 320))
+    
+    BUTTOM : List[Tuple[int, int]] = _gen_obstacles((0, 0), (400, 5))
+    
+    return LOWER_LEFT + UPPER_LEFT + UPPER + BUTTOM
+
+def _gen_column() -> List[Tuple[int, int]]:
+    LOWER_LEFT : List[Tuple[int, int]] = _gen_obstacles((160, 120), (165, 125))
+    
+    UPPER_LEFT: List[Tuple[int, int]] = _gen_obstacles((165, 195), (160, 200))
+    
+    UPPER_RIGHT : List[Tuple[int, int]] = _gen_obstacles((235, 125), (240, 120))
+    
+    LOWER_RIGHT : List[Tuple[int, int]] = _gen_obstacles((235, 195), (240, 200))
+    
+    return LOWER_LEFT + UPPER_LEFT + LOWER_RIGHT + UPPER_RIGHT
+
+def _gen_inner_walls() -> List[Tuple[int, int]]:
+    LOWER_LEFT : List[Tuple[int, int]] = _gen_obstacles((105, 55), (110, 125)) + _gen_obstacles((105, 55), (165, 60))
+    
+    UPPER_LEFT: List[Tuple[int, int]] = _gen_obstacles((105, 195), (110, 265)) + _gen_obstacles((105, 260), (165, 265))
+    
+    UPPER_RIGHT : List[Tuple[int, int]] = _gen_obstacles((235, 260), (295, 265)) + _gen_obstacles((290, 265), (295, 195))
+    
+    LOWER_RIGHT : List[Tuple[int, int]] = _gen_obstacles((235, 55), (295, 60)) + _gen_obstacles((290, 55), (295, 125))
+    
+    return LOWER_LEFT + UPPER_LEFT + LOWER_RIGHT + UPPER_RIGHT
+
+
+
+def _gen_default_walls():
+    walls = [(1, 1), (400, 320)]
+    walls += _gen_inner_walls()
+    walls += _gen_outer_walls()
+    walls += _gen_column()
+    return walls
+    
+    
 
 def main():
     # camera = TopCamera("rtsp://Admin:rtf123@192.168.2.251:554/1", 'detecting_objects-ygnzn/1', api_key="d6bnjs5HORwCF1APwuBX")
     start, end = _gen_points()
-    obstacles = _gen_obstacles(150, 250)
 
-    a_star: AStarSearcher = AStarSearcher(obstacles)
     
-    obstacles = _gen_obstacles(270, 290)
-    a_star.add_obstacles(obstacles)
+    obstacles = _gen_default_walls()
+    a_star: AStarSearcher = AStarSearcher(obstacles)
     
     path: List[Tuple[int, int]] = a_star.search_closest_path(start, end)
 
