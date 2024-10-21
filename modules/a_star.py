@@ -107,6 +107,15 @@ class AStarSearcher:
         if self.obstacle_pos[node.x][node.y]:
             return False
         return True
+    
+    def add_obstacles_tuples(self, obstacles: List[Tuple[int, int]]):
+        x_obstacle: List[int] = []
+        y_obstacle: List[int] = []
+        for obstacle in obstacles:
+            x_obstacle.append(obstacle[0])
+            y_obstacle.append(obstacle[1])
+        self.__create_obstacle_map(x_obstacle, y_obstacle)
+
 
     def add_obstacles(self, obstacles: List[Position]):
         x_obstacle: List[int] = []

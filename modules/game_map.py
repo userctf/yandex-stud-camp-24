@@ -52,11 +52,12 @@ class GameMap:
         self.is_left = is_left
         self.color = color
         self.limits = []  # первый элемент изменение по оси х, второй по оси у
+        self.a_star : a_star.AStarSearcher = GameMap._init_star(self.inner_boards, self.outer_boards)
+        
         self._set_frame_limits()
 
         self.set_up_field()
         
-        self.a_star : a_star.AStarSearcher = GameMap._init_star(self.inner_boards, self.outer_boards)
         
     @staticmethod
     def _init_star(inner_boards, outer_boards) -> a_star.AStarSearcher:
@@ -217,6 +218,19 @@ class GameMap:
             Base(green_position, (conv_width, conv_height), GameObjectType.GREEN_BASE)]
         self.game_objects[GameObjectType.RED_BASE] = [
             Base(red_position, (conv_width, conv_height), GameObjectType.RED_BASE)]
+        """
+        for key in (GameObjectType.GREEN_BASE, GameObjectType.RED_BASE):
+            for obstacle in self.game_objects[key]:
+                position = obstacle.position
+                size = obstacle.size
+                left_lower = (position.x - int(size.w) // 2, position.y - int(size.h) // 2)
+                right_upper = (position.x + int(size.w) // 2, position.y + int(size.h) // 2)
+                
+                walls = a_star.gen_obstacles(left_lower, right_upper)
+                self.a_star.add_obstacles_tuples(walls)
+        """
+
+
 
     def get_our_robot_position(self) -> GameObject:
         return self.game_objects[GameObjectType.OUR_ROBOT][0]
@@ -270,23 +284,50 @@ class GameMap:
                 )]
                 print(new_game_objects[GameObjectType.OUR_ROBOT])
                 print(new_game_objects[GameObjectType.BAD_ROBOT])
+                
             elif predict.object_type == ObjectType.CUBE:
                 new_game_objects[GameObjectType.CUBE].append(
                     GameObject(self._frame_to_map_position(Position(*np.int32(predict.center))),
                                predict.get_size(),
                                GameObjectType.CUBE)
                 )
+            elif predict.object_type == ObjectType.BTN_G_O:
+                new_game_objects[robot_type] = [GameObject(
+                    self._frame_to_map_position(position),
+                    predict.get_size(),
+                    GameObjectType.BTN_GREEN_ORANGE,
+                )]
+            elif predict.object_type == ObjectType.BTN_G_O:
+                new_game_objects[robot_type] = [GameObject(
+                    self._frame_to_map_position(position),
+                    predict.get_size(),
+                    GameObjectType.BTN_PINK_BLUE,
+                )] 
+                
+                
+            
+            
         for key in self.game_objects.keys():
-            if key == GameObjectType.GREEN_BASE:
-                continue
             if key == GameObjectType.CUBE:
                 self.game_objects[key] = new_game_objects[key].copy()
             elif key == GameObjectType.OUR_ROBOT:
                 if len(new_game_objects[key]) == 0:
                     continue
                 self.game_objects[key] = new_game_objects[key].copy()
+            elif key == GameObjectType.BTN_GREEN_ORANGE or key == GameObjectType.BTN_PINK_BLUE:
+                if len(new_game_objects[key]) == 0:
+                    continue
+                self.game_objects[key] = new_game_objects[key].copy()
+                for obstacle in self.game_objects[key]:
+                    position = obstacle.position
+                    size = obstacle.size
+                    left_lower = (position.x - int(size.w) // 2, position.y - int(size.h) // 2)
+                    right_upper = (position.x + int(size.w) // 2, position.y + int(size.h) // 2)
+                    
+                    walls = a_star.gen_obstacles(left_lower, right_upper)
+                    self.a_star.add_obstacles_tuples(walls)
 
-        # self.game_objects = new_game_objects
+        self.game_objects = new_game_objects
 
 
 if __name__ == "__main__":
