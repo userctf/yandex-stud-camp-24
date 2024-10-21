@@ -4,6 +4,9 @@ import numpy as np
 from typing import List, Tuple
 
 from copy import deepcopy
+
+from numpy.lib.function_base import angle
+
 from base_camera import Prediction
 
 from top_camera import TopCamera
@@ -52,8 +55,8 @@ class GameMap:
         self.is_left = is_left
         self.color = color
         self.limits = []  # первый элемент изменение по оси х, второй по оси у
-        self._set_frame_limits()
 
+        self._set_frame_limits()
         self.set_up_field()
         
         self.a_star : a_star.AStarSearcher = GameMap._init_star(self.inner_boards, self.outer_boards)
@@ -72,10 +75,10 @@ class GameMap:
             walls += a_star.gen_left_right_outer_walls()
         return a_star.AStarSearcher(walls)
 
-    def find_path_to(self, gameobject: GameObjectType) -> List[Tuple[int, int]]:
+    def find_path_to(self, robot_position: Position, game_object_type: GameObjectType) -> List[Tuple[int, int]]:
         self.find_all_game_objects()
-        start_point = self.get_our_robot_position().get_center() # TODO: center or other point of robot???
-        end_point = self.game_objects[gameobject][0].position # TODO: find [0] or the closest one?
+        start_point = robot_position # TODO: center or other point of robot???
+        end_point = self.game_objects[game_object_type][0].position # TODO: find [0] or the closest one?
         path: List[Tuple[int, int]] = self.a_star.search_closest_path(start_point, end_point)
         print(path)
         x_out_path = []
@@ -122,7 +125,7 @@ class GameMap:
             print("Средний цвет ярких пикселей ближе к красному")
             return color == "red" and position.angle != -1, position
         else:
-            print("Средний цвет ярких пикселей ближе к зелёному")
+            print("Средний цвет ярких пикселей ближе к зелёному", position.angle)
             return color == "green" and position.angle != -1, position
 
     @staticmethod
@@ -163,6 +166,7 @@ class GameMap:
         frame = self.top_camera.fix_eye(frame, self.is_left)
 
         _, w, h = self.top_camera.get_game_arena(frame)
+        print("Frame borders are:", w, h)
         self.limits = [w, h]
 
     def _frame_to_map_position(self, position: Position) -> Position:
@@ -248,8 +252,10 @@ class GameMap:
 
     def find_all_game_objects(self):
         # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
+
         frame = self.top_camera.get_photo()
-        # frame = cv2.imread("img.png")
+        # frame = cv2.imread("imgs/2024-10-21 18-13-51.mov_20241021_223737.300.png")
+
         frame = self.top_camera.fix_eye(frame, self.is_left)
 
         frame, w, h = self.top_camera.get_game_arena(frame)
@@ -292,7 +298,8 @@ class GameMap:
 if __name__ == "__main__":
     camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1',
                        api_key="d6bnjs5HORwCF1APwuBX")
-    game_map = GameMap(camera)
-    game_map.set_up_field()
+    game_map = GameMap(camera, color="green")
+    # game_map.set_up_field()
+    game_map.find_all_game_objects()
     camera.stopped = True
     cv2.destroyAllWindows()
