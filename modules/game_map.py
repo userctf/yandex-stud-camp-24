@@ -219,59 +219,59 @@ class GameMap:
             GameObject(red_position, (conv_width, conv_height), GameObjectType.RED_BASE)]
 
 
-def get_our_robot_position(self) -> GameObject:
-    return self.game_objects[GameObjectType.OUR_ROBOT][0]
+    def get_our_robot_position(self) -> GameObject:
+        return self.game_objects[GameObjectType.OUR_ROBOT][0]
 
 
-def set_up_field(self):
-    start_time = time.time()
-    while time.time() - start_time < 2:
-        # frame = self.top_camera.get_photo()
-        frame = cv2.imread("img.png")
+    def set_up_field(self):
+        start_time = time.time()
+        while time.time() - start_time < 2:
+            # frame = self.top_camera.get_photo()
+            frame = cv2.imread("img.png")
+            frame = self.top_camera.fix_eye(frame, IS_LEFT)
+            frame, w, h = self.top_camera.get_game_arena(frame)
+
+            predicts = sorted(self.top_camera.predict(frame), key=lambda p: p.object_type)
+            print(predicts)
+
+            for predict in predicts:
+                if predict.object_type == ObjectType.CUBE:
+                    pass
+                elif predict.object_type == ObjectType.GREEN_BASE:
+                    s
+            break
+
+
+    def find_all_game_objects(self):
+        # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
+        frame = self.top_camera.get_photo()
+        # frame = cv2.imread("img.png")
         frame = self.top_camera.fix_eye(frame, IS_LEFT)
+
         frame, w, h = self.top_camera.get_game_arena(frame)
 
-        predicts = sorted(self.top_camera.predict(frame), key=lambda p: p.object_type)
+        predicts = self.top_camera.predict(frame)
         print(predicts)
 
+        new_game_objects = deepcopy(GAME_OBJECTS_TEMPLATE)
+
         for predict in predicts:
-            if predict.object_type == ObjectType.CUBE:
-                pass
-            elif predict.object_type == ObjectType.GREEN_BASE:
-                pass
-        break
+            if predict.object_type is ObjectType.ROBOT:
+                is_our, position = self._get_robot_position(frame, predict)
+                robot_type = GameObjectType.OUR_ROBOT if is_our else GameObjectType.BAD_ROBOT
+                new_game_objects[robot_type] = [GameObject(
+                    position,
+                    predict.get_size(),
+                    robot_type,
+                )]
+                print(new_game_objects[GameObjectType.OUR_ROBOT])
+                print(new_game_objects[GameObjectType.BAD_ROBOT])
+            elif predict.object_type == ObjectType.CUBE:
+                new_game_objects[GameObjectType.CUBE].append(
+                    GameObject(np.int32(predict.center), predict.get_size(), GameObjectType.CUBE)
+                )
 
-
-def find_all_game_objects(self):
-    # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
-    frame = self.top_camera.get_photo()
-    # frame = cv2.imread("img.png")
-    frame = self.top_camera.fix_eye(frame, IS_LEFT)
-
-    frame, w, h = self.top_camera.get_game_arena(frame)
-
-    predicts = self.top_camera.predict(frame)
-    print(predicts)
-
-    new_game_objects = deepcopy(GAME_OBJECTS_TEMPLATE)
-
-    for predict in predicts:
-        if predict.object_type is ObjectType.ROBOT:
-            is_our, position = self._get_robot_position(frame, predict)
-            robot_type = GameObjectType.OUR_ROBOT if is_our else GameObjectType.BAD_ROBOT
-            new_game_objects[robot_type] = [GameObject(
-                position,
-                predict.get_size(),
-                robot_type,
-            )]
-            print(new_game_objects[GameObjectType.OUR_ROBOT])
-            print(new_game_objects[GameObjectType.BAD_ROBOT])
-        elif predict.object_type == ObjectType.CUBE:
-            new_game_objects[GameObjectType.CUBE].append(
-                GameObject(np.int32(predict.center), predict.get_size(), GameObjectType.CUBE)
-            )
-
-    self.game_objects = new_game_objects
+        self.game_objects = new_game_objects
 
 
 if __name__ == "__main__":
