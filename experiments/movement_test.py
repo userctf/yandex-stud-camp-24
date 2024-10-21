@@ -23,7 +23,7 @@ print(f"Соединение с {host}:{port}")
 s.connect((host, port))
 s.settimeout(3)
 move = Move(s.dup())
-arm = Arm(s.dup())
+#arm = Arm(s.dup())
 
 # x_path = [0, 90]
 # y_path = [90, -100]
@@ -38,8 +38,8 @@ class Dir(Enum):
 
 move.set_speed(66, 62)
 
-for i in range(8):
-    move._move(Dir.RIGHT, 0.88)
+for i in range(3):
+    move._move(Dir.LEFT, 0.86)
 
 
 
