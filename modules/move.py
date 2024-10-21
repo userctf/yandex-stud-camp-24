@@ -177,26 +177,26 @@ class Move(BaseModule):
         return math.sqrt((self.__x_cord - dest_x)**2 + (self.__y_cord - y_dest)**2)
 
     def move_to_point(self, x_dest : int, y_dest : int, stop_before_target=True):
-            new_angle = self._calculate_new_angle(x_dest, y_dest)
-            dist = self._calculate_dist_to_move(x_dest, y_dest)
-            if stop_before_target:
-                dist = dist // 2
+        new_angle = self._calculate_new_angle(x_dest, y_dest)
+        dist = self._calculate_dist_to_move(x_dest, y_dest)
+        if stop_before_target:
+            dist = dist // 2
 
-            # print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
-            # print(f'Направляюсь в ({x_dest}, {y_dest})')
-            # print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
-            # print(f'И проехать на {dist} см')
-            # print()
-            # time.sleep(2)
+        # print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
+        # print(f'Направляюсь в ({x_dest}, {y_dest})')
+        # print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
+        # print(f'И проехать на {dist} см')
+        # print()
+        # time.sleep(2)
 
-            # turn to the destination
-            if (new_angle != self.__angle):
-                self.turn_deg(new_angle - self.__angle)
+        # turn to the destination
+        if (new_angle != self.__angle):
+            self.turn_deg(new_angle - self.__angle)
 
-            # move to the destination
-            while dist > 0:
-                self.go_sm(min(dist, 95))
-                dist -= min(dist, 95)
+        # move to the destination
+        while dist > 0:
+            self.go_sm(min(dist, 95))
+            dist -= min(dist, 95)
 
     def update_state(self, x: float, y: float, angle: float):
         HEIGHT = 321
