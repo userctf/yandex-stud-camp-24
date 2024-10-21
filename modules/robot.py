@@ -1,12 +1,14 @@
 import math
 import socket
 import time
+from typing import List, Tuple
 import cv2
 
 from arm import Arm
 from move import Move
+from enum import Enum
 from camera_on_board import CameraOnBoard
-from base_camera import ObjectType
+from utils.enums import ObjectType, GameObjectType
 from game_map import GameMap
 from top_camera import TopCamera
 from sensors import Sensors
@@ -20,6 +22,40 @@ ON_BOARD_API_KEY = "uGu8WU7fJgR8qflCGaqP"
 TOP_CAMERA_URL = "rtsp://Admin:rtf123@192.168.2.250:554/1"
 TOP_CAMERA_NEURAL_MODEL = 'detecting_objects-ygnzn/1'
 TOP_CAMERA_API_KEY = "d6bnjs5HORwCF1APwuBX"
+
+
+class GameTasks(Enum):
+    FIND_AND_GRAB_FIRST_CUBE = 0
+    FIND_AND_GRAB_SECOND_CUBE = 1
+    FIND_AND_GRAB_BALL = 2
+    DELIVER_FIRST_CUBE_TO_BASKET = 3
+    DELIVER_SECOND_TO_BASKET = 4
+    DELIVER_BALL_TO_BASKET = 5
+    PRESS_FIRST_BUTTON = 6
+    PRESS_SECOND_BUTTON = 7
+    RETURN_TO_BASE = 8
+    UNKNOWN = -1
+
+
+class GameTasksType(Enum):
+    NOT_STARTED = 0
+    IN_PROCESS = 1
+    COMPLETED = 2
+    ERROR = -1
+
+
+game_tasks = {
+    GameTasks.FIND_AND_GRAB_FIRST_CUBE: GameTasksType.NOT_STARTED,
+    GameTasks.FIND_AND_GRAB_SECOND_CUBE: GameTasksType.NOT_STARTED,
+    GameTasks.FIND_AND_GRAB_BALL: GameTasksType.NOT_STARTED,
+    GameTasks.DELIVER_FIRST_CUBE_TO_BASKET: GameTasksType.NOT_STARTED,
+    GameTasks.DELIVER_SECOND_TO_BASKET: GameTasksType.NOT_STARTED,
+    GameTasks.DELIVER_BALL_TO_BASKET: GameTasksType.NOT_STARTED,
+    GameTasks.PRESS_FIRST_BUTTON: GameTasksType.NOT_STARTED,
+    GameTasks.PRESS_SECOND_BUTTON: GameTasksType.NOT_STARTED,
+    GameTasks.RETURN_TO_BASE: GameTasksType.NOT_STARTED,
+    GameTasks.UNKNOWN: GameTasksType.NOT_STARTED
+}
 
 
 class Robot:
@@ -119,6 +155,11 @@ class Robot:
                     self.move.turn_deg(angle)
 
             self.move.go_sm(min((y_new - 150) // 10, y_new // 20))
+
+    def move_along_path(self, game_object: GameObjectType):
+        path = self.map.find_path_to(game_object)
+
+        self.move.move_along_path(path)
 
 
 if __name__ == '__main__':
