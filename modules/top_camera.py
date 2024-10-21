@@ -82,18 +82,19 @@ class TopCamera(BaseCamera):
         if len(area_res) == 0:
             return (0, 0), (0, 0), 0
         return max(area_res, key=lambda box: box[1][0] * box[1][1])
-
-    @staticmethod
-    def detection_borders(frame: np.array) -> (bool, str):
-        PADDING_Y = 20
-        PADDING_X = 20
-        box_x, box_y, box_w, box_h, _ = TopCamera.get_game_arena_size(frame)
-        frame = frame[
-                box_y + PADDING_Y:   box_y + box_h - 2 * PADDING_Y,
-                box_x + PADDING_X:   box_x + box_w - 2 * PADDING_X
-                ]  # crop to main rectangle
-
+    
+    def detection_borders(self, frame: np.array) -> (bool, str):
+        PADDING_Y = 80
+        PADDING_X = 80
+        frame = self.get_game_arena(frame)[0]
+        frame = frame[PADDING_Y: -PADDING_Y,
+                      PADDING_X: -PADDING_X]
+        
         contours = TopCamera.get_all_contours(frame)
+        cv2.imshow("Wow", frame)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        
         res = []
         for c in contours:
             x, y, w, h = cv2.boundingRect(c)
@@ -110,6 +111,12 @@ class TopCamera(BaseCamera):
 if __name__ == '__main__':
     camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1',
                        api_key="d6bnjs5HORwCF1APwuBX")
-    img = camera.get_photo()
+    # img = camera.get_photo()
+    img = cv2.imread("img.png")
     img = camera.fix_eye(img, True)
-    print(camera.get_game_arena(img))
+    frame = camera.get_game_arena(img)[0]
+    print(camera.detection_borders(img))
+    # cv2.imshow("Wow", frame)
+    
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
