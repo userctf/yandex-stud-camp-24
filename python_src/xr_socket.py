@@ -112,7 +112,7 @@ class Socket:
             if elapsed_time >= duration:
                 return duration
             
-            dist = ultrasonic.get_distance()
+            dist = ultrasonic.get_filtered_distance()
             if dist < cfg.CRITICAL_DIST:
                 return elapsed_time
 
@@ -344,7 +344,7 @@ class Socket:
                 ]
             elif sensor_id == 0x02:
                 data = [
-                    ultrasonic.get_distance()  # dist
+                    ultrasonic.get_filtered_distance()  # dist
                 ]
 
             self.sendbuf("\n".join([str(i) for i in data]).encode("utf-8"))
