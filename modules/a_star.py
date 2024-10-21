@@ -276,7 +276,7 @@ class AStarSearcher:
         return approx_path[::-1]
 
 
-def _gen_obstacles(lower_left: Tuple[int, int], upper_right: Tuple[int, int]) -> List[Tuple[int, int]]:
+def gen_obstacles(lower_left: Tuple[int, int], upper_right: Tuple[int, int]) -> List[Tuple[int, int]]:
     obstacles = [(1, 1), (400, 320)]
     lower_left = list(lower_left)
     upper_right = list(upper_right)
@@ -289,87 +289,85 @@ def _gen_obstacles(lower_left: Tuple[int, int], upper_right: Tuple[int, int]) ->
             obstacles.append((x, y))
     return obstacles
 
-def _gen_end_of_world_walls():
-    LOWER_LEFT : List[Tuple[int, int]] = _gen_obstacles((0,0), (5, 320))
+def gen_end_of_world_walls():
+    LOWER_LEFT : List[Tuple[int, int]] = gen_obstacles((0,0), (5, 320))
     
-    UPPER_LEFT: List[Tuple[int, int]] = _gen_obstacles((0, 315), (400, 320))
+    UPPER_LEFT: List[Tuple[int, int]] = gen_obstacles((0, 315), (400, 320))
     
-    UPPER : List[Tuple[int, int]] = _gen_obstacles((395, 0), (400, 320))
+    UPPER : List[Tuple[int, int]] = gen_obstacles((395, 0), (400, 320))
     
-    BUTTOM : List[Tuple[int, int]] = _gen_obstacles((0, 0), (400, 5))
+    BUTTOM : List[Tuple[int, int]] = gen_obstacles((0, 0), (400, 5))
     
     return LOWER_LEFT + UPPER_LEFT + UPPER + BUTTOM
 
-def _gen_column() -> List[Tuple[int, int]]:
-    LOWER_LEFT : List[Tuple[int, int]] = _gen_obstacles((160, 120), (165, 125))
+def gen_column() -> List[Tuple[int, int]]:
+    LOWER_LEFT : List[Tuple[int, int]] = gen_obstacles((160, 120), (165, 125))
     
-    UPPER_LEFT: List[Tuple[int, int]] = _gen_obstacles((165, 195), (160, 200))
+    UPPER_LEFT: List[Tuple[int, int]] = gen_obstacles((165, 195), (160, 200))
     
-    UPPER_RIGHT : List[Tuple[int, int]] = _gen_obstacles((235, 125), (240, 120))
+    UPPER_RIGHT : List[Tuple[int, int]] = gen_obstacles((235, 125), (240, 120))
     
-    LOWER_RIGHT : List[Tuple[int, int]] = _gen_obstacles((235, 195), (240, 200))
-    
-    return LOWER_LEFT + UPPER_LEFT + LOWER_RIGHT + UPPER_RIGHT
-
-def _gen_outer_walls() -> List[Tuple[int, int]]:
-    LOWER_LEFT : List[Tuple[int, int]] = _gen_obstacles((105, 55), (110, 125)) + _gen_obstacles((105, 55), (165, 60))
-    
-    UPPER_LEFT: List[Tuple[int, int]] = _gen_obstacles((105, 195), (110, 265)) + _gen_obstacles((105, 260), (165, 265))
-    
-    UPPER_RIGHT : List[Tuple[int, int]] = _gen_obstacles((235, 260), (295, 265)) + _gen_obstacles((290, 265), (295, 195))
-    
-    LOWER_RIGHT : List[Tuple[int, int]] = _gen_obstacles((235, 55), (295, 60)) + _gen_obstacles((290, 55), (295, 125))
+    LOWER_RIGHT : List[Tuple[int, int]] = gen_obstacles((235, 195), (240, 200))
     
     return LOWER_LEFT + UPPER_LEFT + LOWER_RIGHT + UPPER_RIGHT
 
-def _gen_left_right_inner_walls() -> List[Tuple[int, int]]:
-    LEFT: List[Tuple[int, int]] = _gen_obstacles((160, 125), (165, 200))
+def gen_outer_walls() -> List[Tuple[int, int]]:
+    LOWER_LEFT : List[Tuple[int, int]] = gen_obstacles((105, 55), (110, 125)) + gen_obstacles((105, 55), (165, 60))
     
-    RIGHT: List[Tuple[int, int]] = _gen_obstacles((235, 125),(240, 195) )
+    UPPER_LEFT: List[Tuple[int, int]] = gen_obstacles((105, 195), (110, 265)) + gen_obstacles((105, 260), (165, 265))
+    
+    UPPER_RIGHT : List[Tuple[int, int]] = gen_obstacles((235, 260), (295, 265)) + gen_obstacles((290, 265), (295, 195))
+    
+    LOWER_RIGHT : List[Tuple[int, int]] = gen_obstacles((235, 55), (295, 60)) + gen_obstacles((290, 55), (295, 125))
+    
+    return LOWER_LEFT + UPPER_LEFT + LOWER_RIGHT + UPPER_RIGHT
+
+def gen_left_right_inner_walls() -> List[Tuple[int, int]]:
+    LEFT: List[Tuple[int, int]] = gen_obstacles((160, 125), (165, 200))
+    
+    RIGHT: List[Tuple[int, int]] = gen_obstacles((235, 125),(240, 195) )
     
     return LEFT + RIGHT
 
 
-def _gen_up_down_inner_walls() -> List[Tuple[int, int]]:
-    UP: List[Tuple[int, int]] = _gen_obstacles((165, 125), (235, 120))
+def gen_up_down_inner_walls() -> List[Tuple[int, int]]:
+    UP: List[Tuple[int, int]] = gen_obstacles((165, 125), (235, 120))
     
-    DOWN: List[Tuple[int, int]] = _gen_obstacles((165, 195),(235, 200) )
+    DOWN: List[Tuple[int, int]] = gen_obstacles((165, 195),(235, 200) )
     
     return UP +DOWN
 
 
 def _gen_left_right_outer_walls():
-    LEFT : List[Tuple[int, int]] = _gen_obstacles((105, 125), (110, 195))
-    RIGHT: List[Tuple[int, int]] = _gen_obstacles((290, 125), (295, 195))
+    LEFT : List[Tuple[int, int]] = gen_obstacles((105, 125), (110, 195))
+    RIGHT: List[Tuple[int, int]] = gen_obstacles((290, 125), (295, 195))
     return LEFT + RIGHT
 
 def _gen_up_down_outer_walls():
-    UP: List[Tuple[int, int]] = _gen_obstacles((165, 60), (235, 55))
+    UP: List[Tuple[int, int]] = gen_obstacles((165, 60), (235, 55))
     
-    DOWN: List[Tuple[int, int]] = _gen_obstacles((165, 260), (235, 265))
+    DOWN: List[Tuple[int, int]] = gen_obstacles((165, 260), (235, 265))
 
     return UP + DOWN
 
-def _gen_default_walls():
+def gen_default_walls():
     walls = [(1, 1), (400, 320)]
-    walls += _gen_outer_walls()
-    walls += _gen_end_of_world_walls()
-    walls += _gen_column()
-    walls += _gen_up_down_outer_walls()
-    walls += _gen_left_right_inner_walls()
+    walls += gen_outer_walls()
+    walls += gen_end_of_world_walls()
+    walls += gen_column()
     return walls
     
 
-def _gen_points() -> Tuple[Position, Position]:
+def gen_points() -> Tuple[Position, Position]:
     start = Position(50, 50)
     end = Position(270, 240)
     return start, end
 
 
 def main():
-    start, end = _gen_points()
+    start, end = gen_points()
         
-    obstacles = _gen_default_walls()
+    obstacles = gen_default_walls()
     a_star: AStarSearcher = AStarSearcher(obstacles)
     
     path: List[Tuple[int, int]] = a_star.search_closest_path(start, end)

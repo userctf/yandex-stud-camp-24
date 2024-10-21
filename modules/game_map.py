@@ -10,6 +10,7 @@ from top_camera import TopCamera
 from utils.enums import GameObjectType, GameObjectPosition, ObjectType
 from utils.position import Position
 from utils.gameobject import GameObject
+import a_star
 
 IS_LEFT = True
 
@@ -39,7 +40,31 @@ class GameMap:
         self.color = color
         self.limits = []  # первый элемент изменение по оси х, второй по оси у
         self._set_frame_limits()
-
+        
+        self.a_star : a_star.AStarSearcher = GameMap._init_star(self.inner_boards, self.outer_boards)
+        
+    @staticmethod
+    def _init_star(inner_boards, outer_boards) -> a_star.AStarSearcher:
+        walls: List[Tuple[int, int]] = a_star.gen_default_walls()
+        if inner_boards == GameObjectPosition.HORIZONTAL:
+            walls += a_star.gen_up_down_inner_walls()
+        elif inner_boards == GameObjectPosition.VERTICAL:
+            walls += a_star.gen_left_right_inner_walls()
+            
+        if  outer_boards == GameObjectPosition.HORIZONTAL:
+            walls += a_star.gen_up_down_outer_walls()
+        elif outer_boards == GameObjectPosition.VERTICAL:
+            walls += a_star.gen_left_right_outer_walls()
+        return a_star.AStarSearcher(walls)
+    
+    
+    def find_path_to(self, gameobject: GameObjectType) -> List[Tuple[int, int]]:
+        self.find_all_game_objects()
+        start_point = self.get_our_robot_position().get_center() # TODO: center or other point of robot???
+        end_point = self.game_objects[gameobject][0] # TODO: find [0] or the closest one?
+        path: List[Tuple[int, int]] = self.a_star.search_closest_path(start_point, end_point)
+        return path
+    
     @staticmethod
     def _crop_to_robot(image: np.ndarray, robot: Prediction) -> Tuple[np.ndarray, Position]:
         top, bottom = robot.get_coords()
