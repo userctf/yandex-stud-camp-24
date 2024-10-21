@@ -56,8 +56,8 @@ class GameMap:
         self.color = color
         self.limits = []  # первый элемент изменение по оси х, второй по оси у
 
-        # self._set_frame_limits()
-        # self.set_up_field()
+        self._set_frame_limits()
+        self.set_up_field()
         
         self.a_star : a_star.AStarSearcher = GameMap._init_star(self.inner_boards, self.outer_boards)
         
@@ -252,8 +252,10 @@ class GameMap:
 
     def find_all_game_objects(self):
         # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
-        # frame = self.top_camera.get_photo()
-        frame = cv2.imread("imgs/2024-10-21 18-13-51.mov_20241021_223737.300.png")
+
+        frame = self.top_camera.get_photo()
+        # frame = cv2.imread("imgs/2024-10-21 18-13-51.mov_20241021_223737.300.png")
+
         frame = self.top_camera.fix_eye(frame, self.is_left)
 
         frame, w, h = self.top_camera.get_game_arena(frame)
