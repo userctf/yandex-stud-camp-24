@@ -202,6 +202,7 @@ class Move(BaseModule):
             while dist > 0:
                 self.go_sm(min(dist, 95))
                 dist -= min(dist, 95)
+            break
 
     def update_state(self, x: float, y: float, angle: float):
         self.__x_cord = x

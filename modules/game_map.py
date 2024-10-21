@@ -157,8 +157,8 @@ class GameMap:
     def _set_frame_limits(self):
         # вызывается при инициализации. Нужен для перевода в координаты и обратно
         frame = self.top_camera.get_photo()
-        cv2.imshow("1ebala", frame)
-        cv2.waitKey(0) 
+        # cv2.imshow("1ebala", frame)
+        # cv2.waitKey(0)
         # frame = cv2.imread("img.png")
         frame = self.top_camera.fix_eye(frame, self.is_left)
 
@@ -229,9 +229,9 @@ class GameMap:
             frame = self.top_camera.fix_eye(frame, self.is_left)
             frame, w, h = self.top_camera.get_game_arena(frame)
 
-            cv2.imshow("ebala", frame)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            # cv2.imshow("ebala", frame)
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
 
             predicts = sorted(self.top_camera.predict(frame), key=lambda p: p.object_type)
             print(predicts)

@@ -173,6 +173,9 @@ if __name__ == '__main__':
     s.connect((host, port))
 
     robot = Robot(s, is_left=False, color="red")
+    robot.map.find_all_game_objects()
+    print(robot.map.get_our_robot_position())
+    robot.move.update_state(*(robot.map.get_our_robot_position().position))
     robot.move_along_path(GameObjectType.CUBE)
     robot.find_and_grab_object(ObjectType.CUBE)
     robot.move_along_path(GameObjectType.GREEN_BASE)
