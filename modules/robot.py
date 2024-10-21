@@ -62,6 +62,7 @@ game_tasks = {
 
 class Robot:
     def __init__(self, s: socket.socket, is_left: bool = True, color: str = "red"):
+        self.color = color
         self.arm = Arm(s)
         
         self.top_camera = TopCamera(TOP_CAMERA_URL, TOP_CAMERA_NEURAL_MODEL, TOP_CAMERA_API_KEY)
@@ -196,11 +197,18 @@ if __name__ == '__main__':
     robot = Robot(s, is_left=True, color="green")
     robot.map.find_all_game_objects()
     print(robot.map.get_our_robot())
-    robot.move_along_path(GameObjectType.CUBE)
-    print("Дошли до куба")
-    exit()
-    robot.find_and_grab_object(ObjectType.CUBE)
-    print("Vzyali")
-    robot.move_along_path(GameObjectType.RED_BASE)
+    for _ in range(2):
+        try:
+            robot.move_along_path(GameObjectType.CUBE)
+            print("Cubick reached")
+            robot.find_and_grab_object(ObjectType.CUBE)
+            print("Cubick grabbed")
+            robot.move_along_path(GameObjectType.RED_BASE if robot.color == 'red' else GameObjectType.GREEN_BASE)
+            print("Base reached")
+            robot.throw_in_basket()
+            print("Cubick put in basket")
+        except ValueError as e:
+            print('Cubick not found')
 
+    robot.move_along_path(GameObjectType.RED_BASE if robot.color == 'red' else GameObjectType.GREEN_BASE)
     robot.throw_in_basket()
