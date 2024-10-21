@@ -22,52 +22,6 @@ class CameraOnBoard(BaseCamera):
     def __init__(self, onboard_stream_url: str, neural_model_id: str, api_key: str):
         super().__init__(onboard_stream_url, neural_model_id, api_key)
 
-    def test_cob(self, s):
-        move = Move(s)
-        while True:
-            img = self.get_photo()
-            p = self.predict(img)
-            frame = self._write_on_img(img, p)
-
-            cv2.imshow('Frame with Box', img)
-            x, y = self.get_len_to(ObjectType.CUBE)
-            print(f"Distance im mm: x{x}, y{y}")
-
-            if (x, y) == (-1, -1):
-                # Try to find it
-                #  TODO
-                move.go_sm(-4)
-                move.turn_deg(-10)
-                sleep(1)
-                continue
-
-            # Too close: robot will not be able to grab the object
-            if y < 120: # MAGIC NUMBER
-                move.go_sm(-4)
-                sleep(1)
-                continue
-
-            # Let's grab it
-            if y < 220 and abs(x) < 40: # MAGIC NUMBER
-                arm = Arm(s)
-                arm.grab(y + 30)
-                sleep(1)
-                return
-
-            # Turn towards object
-            angle = self.__get_angle_to_object(x_obj=x, y_obj=y)
-            move.turn_deg(angle * 0.5)            
-
-            # Recalc dist after turn
-            x, y = self.get_len_to(ObjectType.CUBE)
-
-            # Move towards object
-            move.go_sm(y//20)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-        cv2.destroyAllWindows()
-
     def get_len_to(self, game_object: ObjectType) -> (int, int):
         frame = self.get_photo()
         items = self.get_objects(frame, game_object)
@@ -99,15 +53,6 @@ class CameraOnBoard(BaseCamera):
                                         [-3.05200625e-05,  2.16211055e-02,  1.00000000e+00]])
 
         return transform_matrix
-
-    def __get_angle_to_object(self, x_obj: int, y_obj: int) -> int:
-        x_center = 35
-        y_center = -140
-        length = math.sqrt((x_obj - x_center) ** 2 + (y_obj - y_center) ** 2)
-        gamma = math.asin(abs(x_center) / length)
-        alpha = math.atan2(x_obj - x_center, y_obj - y_center)
-        rotate_angle = alpha + gamma
-        return int(rotate_angle * 180 / math.pi + 0.5)
 
     def __find_projection_coord(self, x_src: int, y_src: int, proj_matrix: numpy.array) -> tuple[int, int]:
         x_dst = int((proj_matrix[0][0] * x_src + proj_matrix[0][1] * y_src + proj_matrix[0][2]) /

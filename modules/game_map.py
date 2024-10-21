@@ -4,6 +4,7 @@ import numpy as np
 from typing import List, Tuple
 
 from modules.base_camera import Prediction
+
 from top_camera import TopCamera
 from utils.enums import GameObjectType, GameObjectPosition, ObjectType
 
