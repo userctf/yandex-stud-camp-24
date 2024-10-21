@@ -168,12 +168,12 @@ class GameMap:
         frame = self.top_camera.fix_eye(frame, IS_LEFT)
 
         _, w, h = self.top_camera.get_game_arena(frame)
-        self.limits = [w / VIRTUAL_WIDTH, h / VIRTUAL_HEIGHT]
+        self.limits = [w, h]
 
     def _frame_to_map_position(self, position: Position) -> Position:
         # Using limits from _set_frame_limits. Can't be made static
-        position.x = int(position.x * self.limits[0] + 0.5)
-        position.y = int(position.y * self.limits[1] + 0.5)
+        position.x = int(position.x / self.limits[0] * VIRTUAL_WIDTH + 0.5)
+        position.y = int(position.y / self.limits[1] * VIRTUAL_HEIGHT + 0.5)
         return position
 
     def _get_robot_position(self, frame: np.ndarray, prediction: Prediction) -> Tuple[bool, Position]:
@@ -183,31 +183,35 @@ class GameMap:
 
     def _set_base_positions(self, base_prediction: Prediction):
         width, height = np.int32(base_prediction.get_size())
+        print(width, height)
         x, y = np.int32(base_prediction.center)
         base_state = GameStartState.VERTICAL
         if width > height:
             base_state = GameStartState.HORIZONTAL
+        print(base_state)
         if base_state == GameStartState.HORIZONTAL:
             self.state[GameObjectType.GREEN_BASE] = GameStartState.HORIZONTAL
             self.state[GameObjectType.RED_BASE] = GameStartState.HORIZONTAL
             self.state[GameObjectType.BTN_GREEN_ORANGE] = GameStartState.VERTICAL
             self.state[GameObjectType.BTN_PINK_BLUE] = GameStartState.VERTICAL
-            red_y = y
-            if x > 600:
-                red_x = width // 3
+            red_x = x
+            if y > 500:
+                red_y = height // 3
             else:
-                red_x = self.limits[0] - width // 3
+                red_y = self.limits[1] - height // 3
         else:
             self.state[GameObjectType.GREEN_BASE] = GameStartState.VERTICAL
             self.state[GameObjectType.RED_BASE] = GameStartState.VERTICAL
             self.state[GameObjectType.BTN_GREEN_ORANGE] = GameStartState.HORIZONTAL
             self.state[GameObjectType.BTN_PINK_BLUE] = GameStartState.HORIZONTAL
 
-            red_x = x
-            if y > 500:
-                red_y = height // 3
+
+            red_y = y
+            if x > 600:
+                red_x = width // 3
             else:
-                red_y = self.limits[1] - height // 3
+                red_x = self.limits[0] - width // 3
+
         width = width // 3 * 2
         height = height // 3 * 2
         green_position = self._frame_to_map_position(Position(x, y))
@@ -230,6 +234,10 @@ class GameMap:
             frame = self.top_camera.fix_eye(frame, IS_LEFT)
             frame, w, h = self.top_camera.get_game_arena(frame)
 
+            cv2.imshow("ebala", frame)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
             predicts = sorted(self.top_camera.predict(frame), key=lambda p: p.object_type)
             print(predicts)
 
@@ -238,6 +246,8 @@ class GameMap:
                     pass
                 elif predict.object_type == ObjectType.GREEN_BASE:
                     self._set_base_positions(predict)
+                    print(self.game_objects[GameObjectType.GREEN_BASE])
+                    print(self.game_objects[GameObjectType.RED_BASE])
             break
 
     def find_all_game_objects(self):
