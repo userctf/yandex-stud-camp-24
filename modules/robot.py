@@ -148,14 +148,14 @@ class Robot:
 
             if y_new <= 160:
                 if x_new <= 30:
-                    self.move.go_sm((y_new - 90) // 10)
+                    self.move.go_sm((y_new - 90) // 10, False)
                     self.arm.release()
                     return True
                 else:
                     angle = self.__get_angle_to_object(x_new, y_new)
                     self.move.turn_deg(angle)
 
-            self.move.go_sm(min((y_new - 150) // 10, y_new // 20))
+            self.move.go_sm(min((y_new - 150) // 10, y_new // 20), False)
 
     def move_along_path(self, game_object: GameObjectType):
         path = self.map.find_path_to(self.move.get_position(), game_object)
