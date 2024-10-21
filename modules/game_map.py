@@ -58,6 +58,7 @@ class GameMap:
 
         self._set_frame_limits()
         self.set_up_field()
+        self.find_all_game_objects()
         
         self.a_star : a_star.AStarSearcher = GameMap._init_star(self.inner_boards, self.outer_boards)
         
@@ -77,8 +78,10 @@ class GameMap:
 
     def find_path_to(self, robot_position: Position, game_object_type: GameObjectType) -> List[Tuple[int, int]]:
         self.find_all_game_objects()
+        
         start_point = robot_position # TODO: center or other point of robot???
         end_point = self.game_objects[game_object_type][0].position # TODO: find [0] or the closest one?
+
         path: List[Tuple[int, int]] = self.a_star.search_closest_path(start_point, end_point)
         print(path)
         x_out_path = []
@@ -222,7 +225,7 @@ class GameMap:
         self.game_objects[GameObjectType.RED_BASE] = [
             Base(red_position, (conv_width, conv_height), GameObjectType.RED_BASE)]
 
-    def get_our_robot_position(self) -> GameObject:
+    def get_our_robot(self) -> GameObject:
         return self.game_objects[GameObjectType.OUR_ROBOT][0]
 
     def set_up_field(self):

@@ -105,6 +105,8 @@ class BaseCamera:
 
     # get photo from stream
     def get_photo(self) -> numpy.ndarray:
+        # im = cv2.imread("imgs/2024-10-21 18-13-51.mov_20241021_223735.015.png")
+        # return im
         ret, frame = self.read()
         if not ret:
             print("[ERROR] while reading frame")

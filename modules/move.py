@@ -27,13 +27,16 @@ class Dir(Enum):
 
 STOP_MOVING_RESPONSE = 'STOP_MOVING_RESPONSE'
 
+IMAGE_HEIGHT = 321
+
 
 class Move(BaseModule):
     def __init__(self, s: socket.socket, x_cord: int = 0, y_cord: int = 0, angle: int = 0):
         super().__init__(s.dup())
         self.__x_cord = x_cord
-        self.__y_cord = y_cord
+        self.__y_cord = IMAGE_HEIGHT - y_cord
         self.__angle = angle
+        print("Move inited:", x_cord, y_cord, angle)
 
     def _send(self, message: bytearray, sleep_time=SLEEP_TIME):
         super()._send(message, sleep_time)
@@ -198,9 +201,8 @@ class Move(BaseModule):
             dist -= min(dist, 95)
 
     def update_state(self, x: float, y: float, angle: float):
-        HEIGHT = 321
         self.__x_cord = x
-        self.__y_cord = HEIGHT - y
+        self.__y_cord = IMAGE_HEIGHT - y
 
         diff = (angle - self.__angle + 360) % 360
         diff = min(diff, 360 - diff)

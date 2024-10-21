@@ -10,6 +10,7 @@ from move import Move
 from enum import Enum
 from camera_on_board import CameraOnBoard
 from utils.enums import ObjectType, GameObjectType
+from utils.gameobject import GameObject
 from game_map import GameMap
 from top_camera import TopCamera
 from sensors import Sensors
@@ -62,12 +63,23 @@ game_tasks = {
 class Robot:
     def __init__(self, s: socket.socket, is_left: bool = True, color: str = "red"):
         self.arm = Arm(s)
-        self.move = Move(s)
+        
         self.top_camera = TopCamera(TOP_CAMERA_URL, TOP_CAMERA_NEURAL_MODEL, TOP_CAMERA_API_KEY)
         self.map = GameMap(self.top_camera, is_left=is_left, color=color)
         self.board_camera = CameraOnBoard(ON_BOARD_CAMERA_URL, ON_BOARD_NEURAL_MODEL, ON_BOARD_API_KEY)
-        # Need to add sensors
 
+        x = self.map.get_our_robot().get_center().x
+        y = self.map.get_our_robot().get_center().y
+        # left bottom
+        angle = self.map.get_our_robot().get_center().angle
+        # right top
+        if y < 150: # Magic number Approx half of the image
+            angle = (180 + angle) % 360
+
+        self.move = Move(s, x, y, angle)
+
+        # Need to add sensors
+    
     def __get_angle_to_object(self, x_obj: int, y_obj: int) -> int:
         x_center = 35
         y_center = -140
@@ -163,7 +175,7 @@ class Robot:
             self.move.move_to_point(*path[0], stop_before_target=(len(path) == 1))
             time.sleep(1)
             self.map.find_all_game_objects()
-            map_robot = self.map.get_our_robot_position()
+            map_robot = self.map.get_our_robot()
             if time.time() - map_robot.last_seen < 0.3:
                 self.move.update_state(*map_robot.position)
             path = self.map.find_path_to(self.move.get_position(), game_object)
@@ -171,7 +183,7 @@ class Robot:
 
 
 if __name__ == '__main__':
-    host = "192.168.2.106"
+    host = "192.168.101.143"
     port = 2055
 
     # Создаем сокет
@@ -181,10 +193,11 @@ if __name__ == '__main__':
     # Устанавливаем соединение
     s.connect((host, port))
 
-    robot = Robot(s, is_left=False, color="red")
+    robot = Robot(s, is_left=True, color="green")
+    exit()
     robot.map.find_all_game_objects()
-    print(robot.map.get_our_robot_position())
-    robot.move.update_state(*(robot.map.get_our_robot_position().position))
+    print(robot.map.get_our_robot())
+    robot.move.update_state(*(robot.map.get_our_robot().position))
     robot.move_along_path(GameObjectType.CUBE)
     print("Дошли до куба")
     robot.find_and_grab_object(ObjectType.CUBE)
