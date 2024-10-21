@@ -13,7 +13,7 @@ from top_camera import TopCamera
 
 from utils.enums import GameObjectType, GameStartState, ObjectType
 from utils.position import Position
-from utils.gameobject import GameObject, Base
+from utils.gameobject import GameObject, Base, Cube
 import a_star
 
 IS_LEFT = True
@@ -80,9 +80,20 @@ class GameMap:
         self.find_all_game_objects()
         
         start_point = robot_position # TODO: center or other point of robot???
-        end_point = self.game_objects[game_object_type][0].position # TODO: find [0] or the closest one?
 
-        path: List[Tuple[int, int]] = self.a_star.search_closest_path(start_point, end_point)
+        if len(self.game_objects[game_object_type]) == 0:
+            raise ValueError
+
+        best_point = Position(1000, 1000)
+
+        for i in range(len(self.game_objects[game_object_type])):
+            end_points = self.game_objects[game_object_type][i].get_approach_points() # TODO: find [0] or the closest one?
+
+            end_point = min(end_points, key=lambda x: x.dist(start_point))
+            if start_point.dist(end_point) < start_point.dist(best_point):
+                best_point = end_point
+
+        path: List[Tuple[int, int]] = self.a_star.search_closest_path(start_point, best_point)
         print(path)
         x_out_path = []
         y_out_path = []
@@ -281,7 +292,7 @@ class GameMap:
                 print(new_game_objects[GameObjectType.BAD_ROBOT])
             elif predict.object_type == ObjectType.CUBE:
                 new_game_objects[GameObjectType.CUBE].append(
-                    GameObject(self._frame_to_map_position(Position(*np.int32(predict.center))),
+                    Cube(self._frame_to_map_position(Position(*np.int32(predict.center))),
                                predict.get_size(),
                                GameObjectType.CUBE)
                 )

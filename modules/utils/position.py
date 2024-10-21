@@ -20,3 +20,5 @@ class Position:
     def __repr__(self):
         return f"({self.x}, {self.y}), angle is {self.angle}"
 
+    def dist(self, other):
+        return (self.x - other.x) ** 2 + (self.y - other.y) ** 2

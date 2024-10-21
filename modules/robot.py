@@ -194,12 +194,11 @@ if __name__ == '__main__':
     s.connect((host, port))
 
     robot = Robot(s, is_left=True, color="green")
-    exit()
     robot.map.find_all_game_objects()
     print(robot.map.get_our_robot())
-    robot.move.update_state(*(robot.map.get_our_robot().position))
     robot.move_along_path(GameObjectType.CUBE)
     print("Дошли до куба")
+    exit()
     robot.find_and_grab_object(ObjectType.CUBE)
     print("Vzyali")
     robot.move_along_path(GameObjectType.RED_BASE)
