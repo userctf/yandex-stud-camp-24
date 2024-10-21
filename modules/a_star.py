@@ -1,3 +1,4 @@
+import socket
 from typing import List, Tuple
 import cv2
 import heapq
@@ -7,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from base_camera import ObjectType
+from move import Move
 
 
 class GameObject:
@@ -70,8 +72,8 @@ class AStarSearcher:
     def __init__(self, obstacles: List[Tuple[int, int]]):
         self.HEIGHT = 321
         self.WIDTH = 401
-        self.GRID_SIZE = 8.0    # TODO: fine-tune so robot does no hits walls!
-        self.ROBOT_RADIUS = 16.0 # TODO: fine-tune so robot does no hits walls!
+        self.GRID_SIZE = 10.0    # TODO: fine-tune so robot does no hits walls!
+        self.ROBOT_RADIUS = 15.0 # TODO: fine-tune so robot does no hits walls!
 
         self._show_animation = True
         x_obstacle = [x for x, _ in obstacles]
@@ -149,10 +151,10 @@ class AStarSearcher:
             [0, 1, 1],
             [-1, 0, 1],
             [0, -1, 1],
-            # [-1, -1, math.sqrt(2)],
-            # [-1, 1, math.sqrt(2)],
-            # [1, -1, math.sqrt(2)],
-            # [1, 1, math.sqrt(2)],
+            [-1, -1, math.sqrt(2)],
+            [-1, 1, math.sqrt(2)],
+            [1, -1, math.sqrt(2)],
+            [1, 1, math.sqrt(2)],
         ]
 
         return path
@@ -227,8 +229,8 @@ class AStarSearcher:
                     self.__calc_grid_position(closest_node.y, 0),
                     "xy",
                 )
-                if len(record_closed.keys()) % 10 == 0:
-                    plt.pause(0.001)
+                # if len(record_closed.keys()) % 10 == 0:
+                    # plt.pause(0.001)
 
             if closest_node.x == end_node.x and closest_node.y == end_node.y:
                 print("Astar Finished!")
@@ -278,12 +280,6 @@ class AStarSearcher:
             plt.plot(x_out_path, y_out_path, "r")
             plt.show()
         return approx_path[::-1]
-
-
-def _gen_points() -> Tuple[GameObject, GameObject]:
-    start = GameObject(50, 50)
-    end = GameObject(270, 240)
-    return start, end
 
 
 def _gen_obstacles(lower_left: Tuple[int, int], upper_right: Tuple[int, int]) -> List[Tuple[int, int]]:
@@ -345,7 +341,7 @@ def _gen_up_down_inner_walls() -> List[Tuple[int, int]]:
     
     DOWN: List[Tuple[int, int]] = _gen_obstacles((165, 195),(235, 200) )
     
-    return UP + DOWN
+    return UP +DOWN
 
 
 def _gen_left_right_outer_walls():
@@ -365,22 +361,37 @@ def _gen_default_walls():
     walls += _gen_outer_walls()
     walls += _gen_end_of_world_walls()
     walls += _gen_column()
-    walls += _gen_left_right_outer_walls()
-    walls += _gen_up_down_inner_walls()
+    walls += _gen_up_down_outer_walls()
+    walls += _gen_left_right_inner_walls()
     return walls
     
 
-def main():
-    # camera = TopCamera("rtsp://Admin:rtf123@192.168.2.251:554/1", 'detecting_objects-ygnzn/1', api_key="d6bnjs5HORwCF1APwuBX")
-    start, end = _gen_points()
+def _gen_points() -> Tuple[GameObject, GameObject]:
+    start = GameObject(50, 50)
+    end = GameObject(270, 240)
+    return start, end
 
-    
+
+def main():
+    start, end = _gen_points()
+        
     obstacles = _gen_default_walls()
     a_star: AStarSearcher = AStarSearcher(obstacles)
     
     path: List[Tuple[int, int]] = a_star.search_closest_path(start, end)
-
-    print(path)
+    print(path[0])
+    
+    host = "192.168.2.106"
+    port = 2055
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print(f"Соединение с {host}:{port}")
+    s.connect((host, port))
+    move = Move(s.dup(), start.x, start.y)
+    x_path = [x[0][0] for x in path]
+    y_path = [y[0][1] for y in path]
+    print(x_path, y_path)
+    # move.move_along_path(x_path, y_path)
+    s.close()
 
 
 if __name__ == "__main__":
