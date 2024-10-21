@@ -160,9 +160,9 @@ class Move(BaseModule):
     def _calculate_dist_to_move(self, dest_x, y_dest):
         return math.sqrt((self.__x_cord - dest_x)**2 + (self.__y_cord - y_dest)**2)
 
-    def move_along_path(self, x_path : list[int], y_path : list[int]):
+    def move_along_path(self, path: list[tuple[int, int]]):
         # iterate over nodes
-        for x_dest, y_dest in zip(x_path, y_path):
+        for x_dest, y_dest in path:
             # skip if position has not changed
             if (self.__x_cord == x_dest and self.__y_cord == y_dest):
                 continue
