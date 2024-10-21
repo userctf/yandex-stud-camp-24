@@ -3,6 +3,7 @@ import time
 import numpy as np
 from typing import List, Tuple
 
+from copy import deepcopy
 from base_camera import Prediction
 
 from top_camera import TopCamera
@@ -40,7 +41,7 @@ class Position:
         return f"({self.x}, {self.y}), angle is {self.angle}"
 
 
-game_objects = {
+GAME_OBJECTS_TEMPLATE = {
     GameObjectType.CUBE: [],
     GameObjectType.BALL: None,
     GameObjectType.GREEN_BASE: None,
@@ -73,11 +74,11 @@ class GameObject:
 class GameMap:
     def __init__(self, top_camera: TopCamera, color: str = "red"):
         self.top_camera = top_camera
-        self.game_objects = game_objects.copy()
+        self.game_objects = deepcopy(GAME_OBJECTS_TEMPLATE)
         self.inner_boards = GameObjectPosition.UNKNOWN
         self.outer_boards = GameObjectPosition.UNKNOWN
         self.color = color
-        self.limits = [] # первый элемент изменение по оси х, второй по оси у
+        self.limits = []  # первый элемент изменение по оси х, второй по оси у
         self._set_frame_limits()
 
     @staticmethod
@@ -153,7 +154,7 @@ class GameMap:
         frame = cv2.imread("img.png")
         frame = self.top_camera.fix_eye(frame, IS_LEFT)
 
-        img, w, h = self.top_camera.get_game_arena(frame)
+        _, w, h = self.top_camera.get_game_arena(frame)
         self.limits = [w / VIRTUAL_WIDTH, h / VIRTUAL_HEIGHT]
 
     def _frame_to_map_position(self, position: Position) -> Position:
@@ -167,34 +168,55 @@ class GameMap:
         is_our, robot_position = GameMap._find_robot_color_and_position(cropped_frame, self.color)
         return is_our, robot_position + crop_position
 
+    def get_our_robot_position(self) -> GameObject:
+        return self.game_objects[GameObjectType.OUR_ROBOT][0]
+
+    def set_up_field(self):
+        start_time = time.time()
+        while time.time() - start_time < 2:
+            frame = self.top_camera.get_photo()
+            frame = self.top_camera.fix_eye(frame, IS_LEFT)
+            frame, w, h = self.top_camera.get_game_arena(frame)
+
+            predicts = sorted(self.top_camera.predict(frame), key=lambda p: p.object_type)
+            print(predicts)
+
+            for predict in predicts:
+                if predict.object_type == ObjectType.CUBE:
+                    pass
+
+
+
     def find_all_game_objects(self):
         # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
-        # frame = self.top_camera.get_photo()
-        frame = cv2.imread("img.png")
+        frame = self.top_camera.get_photo()
+        # frame = cv2.imread("img.png")
         frame = self.top_camera.fix_eye(frame, IS_LEFT)
 
-        x, y, w, h = self.top_camera.get_game_arena_size(frame)
-        frame = frame[y:y + h, x:x + w]
+        frame, w, h = self.top_camera.get_game_arena(frame)
 
         predicts = self.top_camera.predict(frame)
+        print(predicts)
+
+        new_game_objects = deepcopy(GAME_OBJECTS_TEMPLATE)
 
         for predict in predicts:
             if predict.object_type is ObjectType.ROBOT:
                 is_our, position = self._get_robot_position(frame, predict)
                 robot_type = GameObjectType.OUR_ROBOT if is_our else GameObjectType.BAD_ROBOT
-                self.game_objects[robot_type] = [GameObject(
+                new_game_objects[robot_type] = [GameObject(
                     position,
                     predict.get_size(),
                     robot_type,
                 )]
-                print(self.game_objects[GameObjectType.OUR_ROBOT])
-                print(self.game_objects[GameObjectType.BAD_ROBOT])
+                print(new_game_objects[GameObjectType.OUR_ROBOT])
+                print(new_game_objects[GameObjectType.BAD_ROBOT])
             elif predict.object_type == ObjectType.CUBE:
-                print("CUBE!!!")
+                new_game_objects[GameObjectType.CUBE].append(
+                    GameObject(np.int32(predict.center), predict.get_size(), GameObjectType.CUBE)
+                )
 
-        cv2.imshow("frame", frame)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        self.game_objects = new_game_objects
 
 
 if __name__ == "__main__":

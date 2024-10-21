@@ -110,7 +110,8 @@ class BaseCamera:
             print("[ERROR] while reading frame")
         return frame
 
-    def _write_on_img(self, frame: numpy.ndarray, predictions: List[Prediction]):
+    @staticmethod
+    def write_on_img(self, frame: numpy.ndarray, predictions: List[Prediction]):
         for pred in predictions:
             left_up, right_down = pred.get_coords()
             color = pred.get_color()
