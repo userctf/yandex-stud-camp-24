@@ -3,12 +3,15 @@ import time
 import numpy as np
 from typing import List, Tuple
 
-from modules.base_camera import Prediction
+from base_camera import Prediction
 
 from top_camera import TopCamera
 from utils.enums import GameObjectType, GameObjectPosition, ObjectType
 
 IS_LEFT = True
+
+VIRTUAL_HEIGHT = 320
+VIRTUAL_WIDTH = 400
 
 LIGHT_THRESHOLD = 220
 MIN_AREA_THRESHOLD = 100
@@ -74,6 +77,8 @@ class GameMap:
         self.inner_boards = GameObjectPosition.UNKNOWN
         self.outer_boards = GameObjectPosition.UNKNOWN
         self.color = color
+        self.limits = []
+        self._set_frame_limits()
 
     @staticmethod
     def _crop_to_robot(image: np.ndarray, robot: Prediction) -> Tuple[np.ndarray, Position]:
@@ -144,11 +149,18 @@ class GameMap:
 
     def _set_frame_limits(self):
         # вызывается при инициализации. Нужен для перевода в координаты и обратно
-        pass
+        # frame = self.top_camera.get_photo()
+        frame = cv2.imread("img.png")
+        frame = self.top_camera.fix_eye(frame, IS_LEFT)
+
+        x, y, w, h = self.top_camera.get_game_arena_size(frame)
+        self.limits = [h / self.HEIGHT, w / self.WIDTH]
 
     def _frame_to_map_position(self, position: Position) -> Position:
         # Using limits from _set_frame_limits. Can't be made static
-        pass
+        position.x = position.x * self.limits[0]
+        position.y = position.y * self.limits[1]
+        return position
 
     def _get_robot_position(self, frame: np.ndarray, prediction: Prediction) -> Tuple[bool, Position]:
         cropped_frame, crop_position = GameMap._crop_to_robot(frame, prediction)
