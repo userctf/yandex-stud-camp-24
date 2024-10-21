@@ -153,7 +153,7 @@ class GameMap:
         frame = cv2.imread("img.png")
         frame = self.top_camera.fix_eye(frame, IS_LEFT)
 
-        x, y, w, h = self.top_camera.get_game_arena_size(frame)
+        img, w, h = self.top_camera.get_game_arena(frame)
         self.limits = [w / VIRTUAL_WIDTH, h / VIRTUAL_HEIGHT]
 
     def _frame_to_map_position(self, position: Position) -> Position:
