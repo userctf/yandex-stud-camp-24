@@ -343,11 +343,13 @@ class Socket:
                     gpio.digital_read(gpio.IRF_L),  # IRF_L
                 ]
             elif sensor_id == 0x02:
-                data = [
-                    ultrasonic.get_distance()  # dist
-                ]
-
-            print("Sensors:", data)
+                all_data = sorted([ultrasonic.get_distance() for _ in range(5)])
+                n = len(all_data)
+                if n % 2 == 0:
+                    median = (sorteall_datad_data[n // 2 - 1] + all_data[n // 2]) / 2
+                else:
+                    median = all_data[n // 2] 
+                data = [median]
             self.sendbuf("\n".join([str(i) for i in data]).encode("utf-8"))
 
         elif buffer[0] == 0x43:
