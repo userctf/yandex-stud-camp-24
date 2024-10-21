@@ -173,5 +173,7 @@ if __name__ == '__main__':
     s.connect((host, port))
 
     robot = Robot(s)
-    print(robot.find_and_grab_object(ObjectType.CUBE))
-    print(robot.throw_in_basket())
+    robot.move_along_path(GameObjectType.CUBE)
+    robot.find_and_grab_object(ObjectType.CUBE)
+    robot.move_along_path(GameObjectType.GREEN_BASE)
+    robot.throw_in_basket()
