@@ -318,14 +318,25 @@ def _gen_inner_walls() -> List[Tuple[int, int]]:
     return LOWER_LEFT + UPPER_LEFT + LOWER_RIGHT + UPPER_RIGHT
 
 
+def _gen_left_right_inner_walls():
+    LEFT : List[Tuple[int, int]] = _gen_obstacles((105, 125), (110, 195))
+    RIGHT: List[Tuple[int, int]] = _gen_obstacles((290, 125), (295, 195))
+    return LEFT + RIGHT
+
+def _gen_up_down_inner_walls():
+    UP: List[Tuple[int, int]] = _gen_obstacles((165, 60), (235, 55))
+    
+    DOWN: List[Tuple[int, int]] = _gen_obstacles((165, 260), (235, 265))
+
+    return UP + DOWN
 
 def _gen_default_walls():
     walls = [(1, 1), (400, 320)]
     walls += _gen_inner_walls()
     walls += _gen_outer_walls()
     walls += _gen_column()
+    walls += _gen_up_down_inner_walls()
     return walls
-    
     
 
 def main():
