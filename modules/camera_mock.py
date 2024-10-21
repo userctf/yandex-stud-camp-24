@@ -14,6 +14,7 @@ class CameraMock():
 
     def __init__(self):
         self.last_image_index = 0
+        self.cropping_data = None
 
     @staticmethod
     def fix_eye(frame: np.ndarray, is_left: bool) -> np.ndarray:  # IMPORTANT: it crops a little bit
@@ -59,15 +60,23 @@ class CameraMock():
 
     def get_game_arena(self, frame: np.ndarray) -> (np.ndarray, int, int):
         min_area_box = self.__get_game_arena_min_box(frame)
+        # using precalced data if possible
+        if self.cropping_data is None:
+            min_area_box = self.__get_game_arena_min_box(frame)
+            box = np.int0(cv2.boxPoints(min_area_box))
+            width, height = int(min_area_box[1][0]), int(min_area_box[1][1])
+            
+            src_pts = box.astype('float32')
+            dst_pts = np.array([[0, height-1], [0, 0], [width-1, 0], [width-1, height-1]], dtype='float32')
+            M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+            
+            self.cropping_data = M, (width, height)
         
-        box = np.int0(cv2.boxPoints(min_area_box))
-        width, height = int(min_area_box[1][0]), int(min_area_box[1][1])
-
-        src_pts = box.astype('float32')
-        dst_pts = np.array([[0, height-1], [0, 0], [width-1, 0], [width-1, height-1]], dtype='float32')
-        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        M = self.cropping_data[0]
+        width, height = self.cropping_data[1]
+        min_area_box = self.__get_game_arena_min_box(frame)
         img_crop = cv2.warpPerspective(frame, M, (width, height))
-        
+
         return img_crop, width, height
     
     @staticmethod
@@ -108,32 +117,6 @@ class CameraMock():
         else:
             return (False, "Left/Right")
 
-    def get_game_arena(self, frame: np.ndarray) -> (np.ndarray, int, int):
-        min_area_box = self.__get_game_arena_min_box(frame)
-        
-        box = np.int0(cv2.boxPoints(min_area_box))
-        width, height = int(min_area_box[1][0]), int(min_area_box[1][1])
-
-        src_pts = box.astype('float32')
-        dst_pts = np.array([[0, height-1], [0, 0], [width-1, 0], [width-1, height-1]], dtype='float32')
-        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
-        img_crop = cv2.warpPerspective(frame, M, (width, height))
-        
-        return img_crop, width, height
-    
-    def get_game_arena(self, frame: np.ndarray) -> (np.ndarray, int, int):
-        min_area_box = self.__get_game_arena_min_box(frame)
-        
-        box = np.int0(cv2.boxPoints(min_area_box))
-        width, height = int(min_area_box[1][0]), int(min_area_box[1][1])
-
-        src_pts = box.astype('float32')
-        dst_pts = np.array([[0, height-1], [0, 0], [width-1, 0], [width-1, height-1]], dtype='float32')
-        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
-        img_crop = cv2.warpPerspective(frame, M, (width, height))
-        
-        return img_crop, width, height
-   
     @staticmethod
     def __get_game_arena_min_box(frame: np.array) -> ((int, int), (int, int), int): # center, size, angle
         img = frame[0:1400, 0:1600] # crop to remove extra data
