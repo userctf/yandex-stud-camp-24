@@ -182,7 +182,7 @@ class Robot:
 
 
 if __name__ == '__main__':
-    host = "192.168.2.106"
+    host = "192.168.101.143"
     port = 2055
 
     # Создаем сокет
@@ -192,7 +192,8 @@ if __name__ == '__main__':
     # Устанавливаем соединение
     s.connect((host, port))
 
-    robot = Robot(s, is_left=False, color="red")
+    robot = Robot(s, is_left=True, color="green")
+    exit()
     robot.map.find_all_game_objects()
     print(robot.map.get_our_robot())
     robot.move.update_state(*(robot.map.get_our_robot().position))

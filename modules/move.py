@@ -33,6 +33,7 @@ class Move(BaseModule):
         self.__x_cord = x_cord
         self.__y_cord = IMAGE_HEIGHT - y_cord
         self.__angle = angle
+        print("Move inited:", x_cord, y_cord, angle)
 
     def _send(self, message: bytearray, sleep_time=SLEEP_TIME):
         super()._send(message, sleep_time)
