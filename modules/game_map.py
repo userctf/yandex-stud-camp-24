@@ -31,6 +31,17 @@ GAME_OBJECTS_TEMPLATE = {
     GameObjectType.BTN_GREEN_ORANGE: None,
 }
 
+GAME_STATE_TEMPLATE = {
+    GameObjectType.CUBE: GameStartState.UNKNOWN,
+    GameObjectType.BALL: GameStartState.UNKNOWN,
+    GameObjectType.GREEN_BASE: GameStartState.UNKNOWN,
+    GameObjectType.RED_BASE: GameStartState.UNKNOWN,
+    GameObjectType.OUR_ROBOT: GameStartState.OUTER_START_LIKE,
+    GameObjectType.BAD_ROBOT: GameStartState.OUTER_START_LIKE,
+    GameObjectType.BTN_PINK_BLUE: GameStartState.UNKNOWN,
+    GameObjectType.BTN_GREEN_ORANGE: GameStartState.UNKNOWN,
+}
+
 class GameMap:
     def __init__(self, top_camera: TopCamera, color: str = "red"):
         self.top_camera = top_camera
@@ -49,14 +60,14 @@ class GameMap:
     @staticmethod
     def _init_star(inner_boards, outer_boards) -> a_star.AStarSearcher:
         walls: List[Tuple[int, int]] = a_star.gen_default_walls()
-        if inner_boards == GameObjectPosition.HORIZONTAL:
+        if inner_boards == GameStartState.HORIZONTAL:
             walls += a_star.gen_up_down_inner_walls()
-        elif inner_boards == GameObjectPosition.VERTICAL:
+        elif inner_boards == GameStartState.VERTICAL:
             walls += a_star.gen_left_right_inner_walls()
             
-        if  outer_boards == GameObjectPosition.HORIZONTAL:
+        if  outer_boards == GameStartState.HORIZONTAL:
             walls += a_star.gen_up_down_outer_walls()
-        elif outer_boards == GameObjectPosition.VERTICAL:
+        elif outer_boards == GameStartState.VERTICAL:
             walls += a_star.gen_left_right_outer_walls()
         return a_star.AStarSearcher(walls)
 
