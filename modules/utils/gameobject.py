@@ -1,7 +1,7 @@
 import time
 from typing import List, Tuple
-from position import Position
-from enums import GameObjectType
+from .position import Position
+from .enums import GameObjectType
 
 
 class GameObject:

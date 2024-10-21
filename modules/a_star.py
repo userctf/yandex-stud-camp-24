@@ -10,7 +10,7 @@ import numpy as np
 from move import Move
 from utils.gameobject import GameObject
 from utils.position import Position
-from utils.enums import GameObjectType, GameObjectPosition, ObjectType
+from utils.enums import GameObjectType, GameStartState, ObjectType
 
 
 class _PriorityQueue:
