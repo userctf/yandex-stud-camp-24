@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class GameObjectPosition(Enum):
+class GameStartState(Enum):
     HORIZONTAL = 0
     VERTICAL = 1
     INNER_START_LIKE = 2
@@ -33,3 +33,8 @@ class ObjectType(Enum):
     BTN_G_O = 6
     BTN_P_B = 7
     UNKNOWN = -1
+
+    def __lt__(self, other):
+        if isinstance(other, ObjectType):
+            return self.value < other.value
+        return NotImplemented
