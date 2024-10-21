@@ -159,8 +159,8 @@ class GameMap:
 
     def _frame_to_map_position(self, position: Position) -> Position:
         # Using limits from _set_frame_limits. Can't be made static
-        position.x = position.x * self.limits[0]
-        position.y = position.y * self.limits[1]
+        position.x = int(position.x * self.limits[0] + 0.5)
+        position.y = int(position.y * self.limits[1] + 0.5)
         return position
 
     def _get_robot_position(self, frame: np.ndarray, prediction: Prediction) -> Tuple[bool, Position]:

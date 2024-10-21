@@ -83,12 +83,12 @@ class Move(BaseModule):
             # update robot's state
             if direction == Dir.FORWARD:
                 dist = self._time_to_dist(TIMES_FORWARD, DISTS_FORWARD, time_moving)
-                self.__x_cord += dist * math.cos(math.radians(self.__angle))
-                self.__y_cord += dist * math.sin(math.radians(self.__angle))
+                self.__x_cord += dist * math.sin(math.radians(self.__angle))
+                self.__y_cord += dist * math.cos(math.radians(self.__angle))
             elif direction == Dir.BACK:
                 dist = self._time_to_dist(TIMES_FORWARD, DISTS_FORWARD, time_moving)
-                self.__x_cord -= dist * math.cos(math.radians(self.__angle))
-                self.__y_cord -= dist * math.sin(math.radians(self.__angle))
+                self.__x_cord -= dist * math.sin(math.radians(self.__angle))
+                self.__y_cord -= dist * math.cos(math.radians(self.__angle))
             elif direction == Dir.RIGHT:
                 angle = self._time_to_angle(TIMES_RIGHT, ANGLES_RIGHT, time_moving)
                 self.__angle = (self.__angle + angle) % 360
