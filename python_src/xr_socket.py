@@ -112,9 +112,9 @@ class Socket:
             if elapsed_time >= duration:
                 return duration
             
-            # Here can be code to execute while waiting
-            # if emergency_stop:
-            #     return elapsed_time
+            dist = ultrasonic.get_distance()
+            if dist < cfg.CRITICAL_DIST:
+                return elapsed_time
 
             time.sleep(0.01)
 

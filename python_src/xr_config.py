@@ -30,8 +30,8 @@ VOICE_MOD_SET = {'normal': 0, 'openlight': 1, 'closelight': 2, 'forward': 3, 'ba
 
 PATH_DECT_FLAG = 0  		# 摄像头巡线标志位，0为巡黑线（浅色地面，深色线）；1为巡白线（深色地面，浅色线）
 
-LEFT_SPEED = 80  			# 机器人左侧速度
-RIGHT_SPEED = 85  			# 机器人右侧速度
+LEFT_SPEED = 62  			# 机器人左侧速度
+RIGHT_SPEED = 66  			# 机器人右侧速度
 LASRT_LEFT_SPEED = 100  	# 上一次机器人左侧速度
 LASRT_RIGHT_SPEED = 100  	# 上一次机器人右侧速度
 
@@ -40,7 +40,8 @@ SERVO_ANGLE = 90			# 舵机角度
 SERVO_ANGLE_LAST = 90		# 上一次舵机角度
 ANGLE = [90, 90, 90, 90, 90, 90, 90, 5]	# 8个舵机存储的角度
 
-DISTANCE = 0  			# 超声波测距值
+CRITICAL_DIST = 10
+DISTANCE = CRITICAL_DIST
 AVOID_CHANGER = 1  		# 超声波避障启动标志
 AVOIDDROP_CHANGER = 1 	# 红外防跌落启动标志
 
