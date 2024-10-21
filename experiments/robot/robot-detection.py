@@ -54,9 +54,7 @@ def detect_robots(camera: TopCamera):
     image = camera.get_photo()
     image = camera.fix_eye(image, True)
 
-    x, y, w, h = camera.get_game_arena_size(image)
-
-    image = image[y:y + h, x:x + w]
+    image = camera.get_game_arena(image)
 
     print(camera.predict(image))
 
