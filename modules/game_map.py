@@ -22,13 +22,13 @@ LIGHT_THRESHOLD = 220
 MIN_AREA_THRESHOLD = 100
 GAME_OBJECTS_TEMPLATE = {
     GameObjectType.CUBE: [],
-    GameObjectType.BALL: None,
-    GameObjectType.GREEN_BASE: None,
-    GameObjectType.RED_BASE: None,
-    GameObjectType.OUR_ROBOT: None,
-    GameObjectType.BAD_ROBOT: None,
-    GameObjectType.BTN_PINK_BLUE: None,
-    GameObjectType.BTN_GREEN_ORANGE: None,
+    GameObjectType.BALL: [],
+    GameObjectType.GREEN_BASE: [],
+    GameObjectType.RED_BASE: [],
+    GameObjectType.OUR_ROBOT: [],
+    GameObjectType.BAD_ROBOT: [],
+    GameObjectType.BTN_PINK_BLUE: [],
+    GameObjectType.BTN_GREEN_ORANGE: [],
 }
 
 GAME_STATE_TEMPLATE = {
@@ -43,12 +43,13 @@ GAME_STATE_TEMPLATE = {
 }
 
 class GameMap:
-    def __init__(self, top_camera: TopCamera, color: str = "red"):
+    def __init__(self, top_camera: TopCamera, is_left: bool = True, color: str = "red",):
         self.top_camera = top_camera
         self.game_objects = deepcopy(GAME_OBJECTS_TEMPLATE)
         self.inner_boards = GameStartState.UNKNOWN
         self.outer_boards = GameStartState.UNKNOWN
         self.state = deepcopy(GAME_STATE_TEMPLATE)
+        self.is_left = is_left
         self.color = color
         self.limits = []  # первый элемент изменение по оси х, второй по оси у
         self._set_frame_limits()
@@ -74,9 +75,17 @@ class GameMap:
     def find_path_to(self, gameobject: GameObjectType) -> List[Tuple[int, int]]:
         self.find_all_game_objects()
         start_point = self.get_our_robot_position().get_center() # TODO: center or other point of robot???
-        end_point = self.game_objects[gameobject][0] # TODO: find [0] or the closest one?
+        end_point = self.game_objects[gameobject][0].position # TODO: find [0] or the closest one?
         path: List[Tuple[int, int]] = self.a_star.search_closest_path(start_point, end_point)
-        return path
+        print(path)
+        x_out_path = []
+        y_out_path = []
+        for point in path:
+            x_out_path.append(point[0][0])
+            y_out_path.append(point[0][1])
+        result = list(zip(x_out_path, y_out_path))
+        print(result)
+        return result
       
     @staticmethod
     def _crop_to_robot(image: np.ndarray, robot: Prediction) -> Tuple[np.ndarray, Position]:
@@ -147,9 +156,11 @@ class GameMap:
 
     def _set_frame_limits(self):
         # вызывается при инициализации. Нужен для перевода в координаты и обратно
-        # frame = self.top_camera.get_photo()
-        frame = cv2.imread("img.png")
-        frame = self.top_camera.fix_eye(frame, IS_LEFT)
+        frame = self.top_camera.get_photo()
+        cv2.imshow("1ebala", frame)
+        cv2.waitKey(0) 
+        # frame = cv2.imread("img.png")
+        frame = self.top_camera.fix_eye(frame, self.is_left)
 
         _, w, h = self.top_camera.get_game_arena(frame)
         self.limits = [w, h]
@@ -213,9 +224,9 @@ class GameMap:
     def set_up_field(self):
         start_time = time.time()
         while time.time() - start_time < 2:
-            # frame = self.top_camera.get_photo()
-            frame = cv2.imread("img.png")
-            frame = self.top_camera.fix_eye(frame, IS_LEFT)
+            frame = self.top_camera.get_photo()
+            # frame = cv2.imread("img.png")
+            frame = self.top_camera.fix_eye(frame, self.is_left)
             frame, w, h = self.top_camera.get_game_arena(frame)
 
             cv2.imshow("ebala", frame)
@@ -239,7 +250,7 @@ class GameMap:
         # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
         frame = self.top_camera.get_photo()
         # frame = cv2.imread("img.png")
-        frame = self.top_camera.fix_eye(frame, IS_LEFT)
+        frame = self.top_camera.fix_eye(frame, self.is_left)
 
         frame, w, h = self.top_camera.get_game_arena(frame)
 
