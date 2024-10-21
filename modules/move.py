@@ -5,7 +5,6 @@ import numpy as np
 from scipy.interpolate import interp1d
 from module import BaseModule
 from enum import Enum
-from utils.position import Position
 
 SLEEP_TIME = 0
 BASE_MESSAGE = bytearray([255, 0, 0, 0, 255])
@@ -17,19 +16,17 @@ ANGLES = [0, 5, 10, 15, 20, 30, 45, 60, 90, 120, 135, 180]
 TIMES_RIGHT = [0, 0.07, 0.12, 0.16, 0.2, 0.27, 0.36, 0.45, 0.64, 0.8, 0.88, 1.15]
 TIMES_LEFT = [0, 0.07, 0.12, 0.16, 0.2, 0.26, 0.37, 0.47, 0.67, 0.86, 0.94, 1.18]
 
-
 class Dir(Enum):
     FORWARD = 68
     BACK = 69
     RIGHT = 72
     LEFT = 71
 
-
 STOP_MOVING_RESPONSE = 'STOP_MOVING_RESPONSE'
 
 
 class Move(BaseModule):
-    def __init__(self, s: socket.socket, x_cord: int = 0, y_cord: int = 0, angle: int = 0):
+    def __init__(self, s: socket.socket, x_cord : int = 0, y_cord : int = 0, angle : int = 0):
         super().__init__(s.dup())
         self.__x_cord = x_cord
         self.__y_cord = y_cord
@@ -41,7 +38,7 @@ class Move(BaseModule):
     def stop(self):
         msg = BASE_MESSAGE.copy()
         self._send(msg)
-
+    
     def forward(self):
         msg = BASE_MESSAGE.copy()
         msg[2] = 1
@@ -62,7 +59,7 @@ class Move(BaseModule):
         msg[2] = 4
         self._send(msg)
 
-    def set_speed(self, l_speed: int, r_speed: int):
+    def set_speed(self, l_speed : int, r_speed: int):
         msg = BASE_MESSAGE.copy()
         msg[1] = 2
 
@@ -74,8 +71,10 @@ class Move(BaseModule):
         msg[3] = l_speed
         self._send(msg)
 
+
+
     # 0 < duration in seconds < 2.55
-    def _move(self, direction: Dir, duration: float, emergency_stop: bool = True):
+    def _move(self, direction : Dir, duration : float, emergency_stop : bool = True):
         if (0 < duration and duration < 2.55):
             time_moving = 0
             msg = BASE_MESSAGE.copy()
@@ -93,7 +92,7 @@ class Move(BaseModule):
                     time_moving = float(response_data[1])
                     print(f'Got stop moving response after {time_moving} seconds moving')
                     break
-
+                
                 time.sleep(0.01)
 
             # update robot's state
@@ -116,28 +115,30 @@ class Move(BaseModule):
         else:
             print('duration must be from 0 to 2.54')
 
+
     @staticmethod
     def _dist_to_time(dists, times, sm):
         piecewise_func = interp1d(dists, times, bounds_error=False, fill_value="extrapolate")
         return piecewise_func(sm)
-
+    
     @staticmethod
     def _angle_to_time(angles, times, deg):
         piecewise_func = interp1d(angles, times, bounds_error=False, fill_value="extrapolate")
         return piecewise_func(deg)
-
+    
     @staticmethod
     def _time_to_dist(times, dists, sec):
         piecewise_func = interp1d(times, dists, bounds_error=False, fill_value="extrapolate")
         return piecewise_func(sec)
-
+    
     @staticmethod
     def _time_to_angle(times, angles, sec):
         piecewise_func = interp1d(times, angles, bounds_error=False, fill_value="extrapolate")
         return piecewise_func(sec)
+    
 
     # -115 <= dist <= 115
-    def go_sm(self, dist, emergency_stop: bool = True):
+    def go_sm(self, dist, emergency_stop : bool = True):
         duration = self._dist_to_time(DISTS, TIMES_DIST, abs(dist))
         if dist > 0:
             self._move(Dir.FORWARD, duration, emergency_stop)
@@ -162,20 +163,20 @@ class Move(BaseModule):
     # returns 0 - 360 angle between vector{x, y} and Oy
     @staticmethod
     def _calculate_clockwise_vector_angle(x, y):
-        if (x == 0 and y == 0):
+        if (x==0 and y ==0):
             raise ValueError("The vector cannot have zero length")
-        angle_rad = math.acos(y / math.sqrt(x ** 2 + y ** 2))
+        angle_rad = math.acos(y / math.sqrt(x**2+y**2))
         angle_deg = math.degrees(angle_rad)
         angle_clockwise = angle_deg if x >= 0 else 360 - angle_deg
         return angle_clockwise
-
+    
     def _calculate_new_angle(self, x_dest, y_dest):
         return self._calculate_clockwise_vector_angle(x_dest - self.__x_cord, y_dest - self.__y_cord)
-
+    
     def _calculate_dist_to_move(self, dest_x, y_dest):
-        return math.sqrt((self.__x_cord - dest_x) ** 2 + (self.__y_cord - y_dest) ** 2)
+        return math.sqrt((self.__x_cord - dest_x)**2 + (self.__y_cord - y_dest)**2)
 
-    def move_to_point(self, x_dest: int, y_dest: int, stop_before_target=True):
+    def move_to_point(self, x_dest : int, y_dest : int, stop_before_target=True):
         new_angle = self._calculate_new_angle(x_dest, y_dest)
         dist = self._calculate_dist_to_move(x_dest, y_dest)
         if stop_before_target:
@@ -208,6 +209,3 @@ class Move(BaseModule):
             self.__angle = angle
         else:
             self.__angle = 180 - angle
-
-    def get_position(self) -> Position:
-        return Position(self.__x_cord, self.__y_cord, self.__angle)
