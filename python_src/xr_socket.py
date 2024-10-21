@@ -362,7 +362,7 @@ class Socket:
             duration = buffer[1] / 100
             emergency_stop = False
             if buffer[0] == 0x44:
-                emergency_stop = True
+                emergency_stop = (buffer[2] == 1)
                 go.forward()
             elif buffer[0] == 0x45:
                 go.back()

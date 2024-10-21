@@ -74,12 +74,13 @@ class Move(BaseModule):
 
 
     # 0 < duration in seconds < 2.55
-    def _move(self, direction : Dir, duration : float):
+    def _move(self, direction : Dir, duration : float, emergency_stop : bool = True):
         if (0 < duration and duration < 2.55):
             time_moving = 0
             msg = BASE_MESSAGE.copy()
             msg[1] = direction.value
             msg[2] = int(duration * 100)
+            msg[3] = emergency_stop
             self._send(msg)
             while True:
                 response = self._get_response()
@@ -137,10 +138,10 @@ class Move(BaseModule):
     
 
     # -115 <= dist <= 115
-    def go_sm(self, dist):
+    def go_sm(self, dist, emergency_stop : bool = True):
         duration = self._dist_to_time(DISTS, TIMES_DIST, abs(dist))
         if dist > 0:
-            self._move(Dir.FORWARD, duration)
+            self._move(Dir.FORWARD, duration, emergency_stop)
         else:
             self._move(Dir.BACK, duration)
 
