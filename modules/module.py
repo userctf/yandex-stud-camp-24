@@ -23,7 +23,7 @@ class BaseModule:
         try:
             data = self.socket.recv(self.RECV_LEN)
             if not data:
-                print(f"Данные от сокета не пришли: {e}")
+                print(f"Данные от сокета не пришли: ")
                 
             return data
         except socket.error as e:

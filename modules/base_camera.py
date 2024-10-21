@@ -1,23 +1,10 @@
 import threading
 from time import sleep
 from inference import get_model
-from enum import Enum
 import cv2
 import numpy
 from typing import Tuple, List
-import requests
-
-
-class ObjectType(Enum):
-    CUBE = 0
-    BALL = 1  # it is detecting only by on board cam
-    BASKET = 2  # it is detecting only by on board cam
-    BUTTONS = 3  # it is detecting only by on board cam
-    ROBOT = 4
-    GREEN_BASE = 5
-    BTN_G_O = 6
-    BTN_P_B = 7
-    UNKNOWN = -1
+from utils.enums import ObjectType
 
 
 class Prediction:
@@ -27,6 +14,9 @@ class Prediction:
         self.confidence: float = prediction.confidence
         self.center: Tuple[float, float] = (prediction.x, prediction.y)
         self.size: Tuple[float, float] = (prediction.width, prediction.height)
+
+    def get_size(self) -> Tuple[float, float]:
+        return self.size
 
     def get_coords(self) -> Tuple:
         left_top = (
@@ -92,10 +82,11 @@ class BaseCamera:
         self.stopped = False
         self.lock = threading.Lock()
         threading.Thread(target=self.__camera_reader, args=()).start()
-        sleep(1) # Probably it is useless and can be removed
+        sleep(1)  # Probably it is useless and can be removed
         print("[INFO] video capturing started")
 
-    def __camera_reader(self): # TODO: also apply model [model.infer] in this thread just after reading the image so it won't bottleneck the main thread
+    def __camera_reader(
+            self):  # TODO: also apply model [model.infer] in this thread just after reading the image so it won't bottleneck the main thread
         while not self.stopped:
             if self.cap.isOpened():
                 ret, frame = self.cap.read()
@@ -103,16 +94,14 @@ class BaseCamera:
                     self.ret, self.frame = ret, frame
             else:
                 self.__stop()
-                
+
     def __stop(self):
         self.stopped = True
         self.cap.release()
 
     def read(self):
-       with self.lock:
-           return self.ret, self.frame
-
-
+        with self.lock:
+            return self.ret, self.frame
 
     # get photo from stream
     def get_photo(self) -> numpy.ndarray:

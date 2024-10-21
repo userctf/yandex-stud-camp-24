@@ -6,7 +6,6 @@ import os
 import sys
 
 import numpy as np
-from jmespath.ast import projection
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../modules')))
 from modules.top_camera import TopCamera
@@ -59,6 +58,8 @@ def detect_robots(camera: TopCamera):
 
     image = image[y:y + h, x:x + w]
 
+    print(camera.predict(image))
+
     preds = camera.get_objects(image, ObjectType.ROBOT)
 
     cv2.imshow("cam", image)
@@ -72,8 +73,6 @@ def detect_robots(camera: TopCamera):
 
 
 def find_robot_position(image: np.array, robot: Prediction):
-    # image = camera.get_game_arena_size(image)
-
     cropped, position = crop_to_robot(image, robot)
     is_our, robot_position = find_robot_color_and_position(cropped, "green")
     print(f"This is {'our' if is_our else 'bad'} Robot position is", robot_position + position)
@@ -82,9 +81,6 @@ def find_robot_position(image: np.array, robot: Prediction):
 def crop_to_robot(image: np.array, robot: Prediction) -> Tuple[np.array, Position]:
     top, bottom = robot.get_coords()
     cropped = image[top[1]:bottom[1], top[0]:bottom[0]]
-
-    # cv2.imshow('Original Image', cropped)
-    # cv2.waitKey(0)
     return cropped, Position(top[0], top[1])
 
 
@@ -118,7 +114,7 @@ def find_robot_color_and_position(cropped: np.array, color: str) -> Tuple[bool, 
         return color == "red" and position.angle != -1, position
     else:
         print("Средний цвет ярких пикселей ближе к зелёному")
-        return color == "green" and position.angle, position
+        return color == "green" and position.angle != -1, position
 
 
 def find_angle(bright_mask: np.array, ) -> Position:
@@ -130,9 +126,8 @@ def find_angle(bright_mask: np.array, ) -> Position:
 
     if not filtered_contours:
         print("Can't determine robot angle")
-        areas = [cv2.contourArea(cnt) for cnt in contours]
-        print(areas)
-        return Position(0, 0, -1)
+        height, width = bright_mask.shape
+        return Position(width // 2, height // 2, -1)
 
         # Выбираем самый крупный контур (основное облако)
     largest_contour = max(filtered_contours, key=cv2.contourArea)
@@ -147,7 +142,6 @@ def find_angle(bright_mask: np.array, ) -> Position:
         main_angle = angle
     else:
         main_angle = angle + 90
-    print("Calculate angle is ", main_angle, "pos is", int(cx), int(cy))
     return Position(int(cx), int(cy), main_angle)
 
 
