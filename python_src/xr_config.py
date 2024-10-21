@@ -40,7 +40,7 @@ SERVO_ANGLE = 90			# 舵机角度
 SERVO_ANGLE_LAST = 90		# 上一次舵机角度
 ANGLE = [90, 90, 90, 90, 90, 90, 90, 5]	# 8个舵机存储的角度
 
-CRITICAL_DIST = 10
+CRITICAL_DIST = 25
 DISTANCE = 0
 AVOID_CHANGER = 1  		# 超声波避障启动标志
 AVOIDDROP_CHANGER = 1 	# 红外防跌落启动标志
