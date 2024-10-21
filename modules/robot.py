@@ -19,7 +19,7 @@ ON_BOARD_CAMERA_URL = "http://192.168.2.106:8080/?action=stream"
 ON_BOARD_NEURAL_MODEL = "robot_camera_detector/1"
 ON_BOARD_API_KEY = "uGu8WU7fJgR8qflCGaqP"
 # Top board_camera parameters
-TOP_CAMERA_URL = "rtsp://Admin:rtf123@192.168.2.250:554/1"
+TOP_CAMERA_URL = "rtsp://Admin:rtf123@192.168.2.251:554/1"
 TOP_CAMERA_NEURAL_MODEL = 'detecting_objects-ygnzn/1'
 TOP_CAMERA_API_KEY = "d6bnjs5HORwCF1APwuBX"
 
@@ -59,11 +59,11 @@ game_tasks = {
 
 
 class Robot:
-    def __init__(self, s: socket.socket):
+    def __init__(self, s: socket.socket, is_left: bool = True, color: str = "red"):
         self.arm = Arm(s)
         self.move = Move(s)
         self.top_camera = TopCamera(TOP_CAMERA_URL, TOP_CAMERA_NEURAL_MODEL, TOP_CAMERA_API_KEY)
-        self.map = GameMap(self.top_camera)
+        self.map = GameMap(self.top_camera, is_left=is_left, color=color)
         self.board_camera = CameraOnBoard(ON_BOARD_CAMERA_URL, ON_BOARD_NEURAL_MODEL, ON_BOARD_API_KEY)
         # Need to add sensors
 
@@ -158,7 +158,7 @@ class Robot:
 
     def move_along_path(self, game_object: GameObjectType):
         path = self.map.find_path_to(game_object)
-        self.move.move_along_path(path)
+        self.move.move_along_path(path, stop_before_target=True)
 
 
 if __name__ == '__main__':
@@ -172,6 +172,11 @@ if __name__ == '__main__':
     # Устанавливаем соединение
     s.connect((host, port))
 
-    robot = Robot(s)
-    print(robot.find_and_grab_object(ObjectType.CUBE))
-    print(robot.throw_in_basket())
+    robot = Robot(s, is_left=False, color="red")
+    robot.map.find_all_game_objects()
+    print(robot.map.get_our_robot_position())
+    robot.move.update_state(*(robot.map.get_our_robot_position().position))
+    robot.move_along_path(GameObjectType.CUBE)
+    robot.find_and_grab_object(ObjectType.CUBE)
+    robot.move_along_path(GameObjectType.GREEN_BASE)
+    robot.throw_in_basket()

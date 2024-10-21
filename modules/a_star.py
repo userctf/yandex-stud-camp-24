@@ -64,9 +64,9 @@ class AStarSearcher:
         self.HEIGHT = 321
         self.WIDTH = 401
         self.GRID_SIZE = 10.0    # TODO: fine-tune so robot does no hits walls!
-        self.ROBOT_RADIUS = 15.0 # TODO: fine-tune so robot does no hits walls!
+        self.ROBOT_RADIUS = 20.0 # TODO: fine-tune so robot does no hits walls!
 
-        self._show_animation = True
+        self._show_animation = False
         x_obstacle = [x for x, _ in obstacles]
         y_obstacle = [y for _, y in obstacles]
         self._path = self.__get_path()
@@ -207,7 +207,7 @@ class AStarSearcher:
                     y_out_path = []
                     for point in approx_path:
                         x_out_path.append(point[0][0])
-                        y_out_path.append(point[0][1])
+                        y_out_path.append(self.HEIGHT - point[0][1])
                     plt.plot(x_out_path, y_out_path, "r")
                     plt.show()
                 return approx_path[::-1]
@@ -268,7 +268,7 @@ class AStarSearcher:
             y_out_path = []
             for point in approx_path:
                 x_out_path.append(point[0][0])
-                y_out_path.append(point[0][1])
+                y_out_path.append(self.HEIGHT - point[0][1])
             plt.plot(x_out_path, y_out_path, "r")
             plt.show()
         return approx_path[::-1]
@@ -358,12 +358,14 @@ def gen_default_walls():
     walls += gen_outer_walls()
     walls += gen_end_of_world_walls()
     walls += gen_column()
+    walls += gen_up_down_inner_walls()
+    walls += gen_left_right_outer_walls()
     return walls
     
 
 def gen_points() -> Tuple[Position, Position]:
     start = Position(50, 50)
-    end = Position(270, 240)
+    end = Position(350,270)
     return start, end
 
 
@@ -384,8 +386,7 @@ def main():
     move = Move(s.dup(), start.x, start.y)
     x_path = [x[0][0] for x in path]
     y_path = [y[0][1] for y in path]
-    print(x_path, y_path)
-    # move.move_along_path(x_path, y_path)
+    move.move_along_path(list(zip(x_path, y_path)))
     s.close()
 
 

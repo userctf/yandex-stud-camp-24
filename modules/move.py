@@ -175,7 +175,7 @@ class Move(BaseModule):
     def _calculate_dist_to_move(self, dest_x, y_dest):
         return math.sqrt((self.__x_cord - dest_x)**2 + (self.__y_cord - y_dest)**2)
 
-    def move_along_path(self, path: list[tuple[int, int]]):
+    def move_along_path(self, path: list[tuple[int, int]], stop_before_target=True):
         # iterate over nodes
         for x_dest, y_dest in path:
             # skip if position has not changed
@@ -184,6 +184,8 @@ class Move(BaseModule):
                 
             new_angle = self._calculate_new_angle(x_dest, y_dest)
             dist = self._calculate_dist_to_move(x_dest, y_dest)
+            if (x_dest, y_dest) == path[-1] and stop_before_target:
+                dist = dist // 2
 
             print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
             print(f'Направляюсь в ({x_dest}, {y_dest})')
@@ -200,10 +202,12 @@ class Move(BaseModule):
             while dist > 0:
                 self.go_sm(min(dist, 95))
                 dist -= min(dist, 95)
+            break
 
     def update_state(self, x: float, y: float, angle: float):
+        HEIGHT = 321
         self.__x_cord = x
-        self.__y_cord = y
+        self.__y_cord = HEIGHT - y
 
         diff = (angle - self.__angle + 360) % 360
         diff = min(diff, 360 - diff)
