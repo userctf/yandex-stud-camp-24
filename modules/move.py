@@ -198,8 +198,8 @@ class Move(BaseModule):
 
             # move to next node
             while dist > 0:
-                self.go_sm(min(dist, 110))
-                dist -= min(dist, 110)
+                self.go_sm(min(dist, 95))
+                dist -= min(dist, 95)
 
     def update_state(self, x: float, y: float, angle: float):
         self.__x_cord = x

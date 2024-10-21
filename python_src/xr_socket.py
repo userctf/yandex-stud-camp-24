@@ -105,7 +105,7 @@ class Socket:
         server.close()
 
     # returns time we were sleeping
-    def _smart_moving_sleep(self, duration : float) -> float:
+    def _smart_moving_sleep(self, duration : float, emergency_stop : bool) -> float:
         start_time = time.time()
         while True:
             elapsed_time = time.time() - start_time
@@ -113,7 +113,7 @@ class Socket:
                 return duration
             
             dist = ultrasonic.get_filtered_distance()
-            if dist < cfg.CRITICAL_DIST:
+            if emergency_stop and dist < cfg.CRITICAL_DIST:
                 return elapsed_time
 
             time.sleep(0.01)
@@ -360,7 +360,9 @@ class Socket:
 
         elif buffer[0] in [0x44, 0x45, 0x48, 0x47]:
             duration = buffer[1] / 100
+            emergency_stop = False
             if buffer[0] == 0x44:
+                emergency_stop = True
                 go.forward()
             elif buffer[0] == 0x45:
                 go.back()
@@ -369,7 +371,7 @@ class Socket:
             elif buffer[0] == 0x47:
                 go.left()
 
-            time_moving = self._smart_moving_sleep(duration)
+            time_moving = self._smart_moving_sleep(duration, emergency_stop)
             go.stop()
             self.sendbuf(f'STOP_MOVING_RESPONSE; {time_moving}'.encode('utf-8'))
 

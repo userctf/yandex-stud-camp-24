@@ -25,21 +25,10 @@ s.settimeout(3)
 move = Move(s.dup())
 #arm = Arm(s.dup())
 
-# x_path = [0, 90]
-# y_path = [90, -100]
+path = [(0, 90), (90, 90), (90, 0), (0, 0)]
 
-# move.move_along_path(x_path, y_path)
+move.move_along_path(path)
 
-class Dir(Enum):
-    FORWARD = 68
-    BACK = 69
-    RIGHT = 72
-    LEFT = 71
-
-move.set_speed(66, 62)
-
-for i in range(3):
-    move._move(Dir.LEFT, 0.86)
 
 
 
