@@ -72,13 +72,13 @@ class Robot:
         x = self.map.get_our_robot().get_center().x
         y = self.map.get_our_robot().get_center().y
         # left bottom
-        angle = self.map.get_our_robot().get_center().angle
+        angle = self.map.get_our_robot().get_center().angle + 90
         # right top
-        if y < 150: # Magic number Approx half of the image
-            angle = (180 + angle) % 360
+        # if y < 150: # Magic number Approx half of the image
+        #    angle = (180 + angle) % 360
         # x, y, _ = self.map.frame_to_map_position(Position(x, y))
 
-        self.move = Move(s, x, y, angle)
+        self.move = Move(s, x, y, 180)
 
         # Need to add sensors
     
@@ -197,7 +197,7 @@ if __name__ == '__main__':
     # Устанавливаем соединение
     s.connect((host, port))
 
-    robot = Robot(s, is_left=True, color="red")
+    robot = Robot(s, is_left=True, color="green")
     robot.map.find_all_game_objects()
     print(robot.map.get_our_robot())
     for _ in range(2):

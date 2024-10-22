@@ -186,7 +186,7 @@ class Move(BaseModule):
         if stop_before_target:
             dist = dist // 2
 
-        print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
+        print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord}), уголь {self.__angle}')
         print(f'Направляюсь в ({x_dest}, {y_dest})')
         print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
         print(f'И проехать на {dist} см')

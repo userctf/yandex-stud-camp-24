@@ -271,6 +271,9 @@ class GameMap:
         frame = self.top_camera.get_photo()
         # frame = cv2.imread("imgs/2024-10-21 18-13-51.mov_20241021_223737.300.png")
 
+        # cv2.imshow("a", frame)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
         frame = self.top_camera.fix_eye(frame, self.is_left)
 
         frame, w, h = self.top_camera.get_game_arena(frame)

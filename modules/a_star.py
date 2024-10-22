@@ -66,7 +66,7 @@ class AStarSearcher:
         self.GRID_SIZE = 10.0    # TODO: fine-tune so robot does no hits walls!
         self.ROBOT_RADIUS = 20.0 # TODO: fine-tune so robot does no hits walls!
 
-        self._show_animation = True
+        self._show_animation = False
         x_obstacle = [x for x, _ in obstacles]
         y_obstacle = [y for _, y in obstacles]
         self._path = self.__get_path()
@@ -271,7 +271,7 @@ class AStarSearcher:
                 y_out_path.append(self.HEIGHT - point[0][1])
             plt.plot(x_out_path, y_out_path, "r")
             plt.show()
-        return approx_path[::-1]
+        return list(zip(x_out_path, y_out_path))[::-1][1:]
 
 
 def gen_obstacles(lower_left: Tuple[int, int], upper_right: Tuple[int, int]) -> List[Tuple[int, int]]:
