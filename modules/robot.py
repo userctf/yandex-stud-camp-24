@@ -21,7 +21,7 @@ ON_BOARD_CAMERA_URL = "http://192.168.2.106:8080/?action=stream"
 ON_BOARD_NEURAL_MODEL = "robot_camera_detector/1"
 ON_BOARD_API_KEY = "uGu8WU7fJgR8qflCGaqP"
 # Top board_camera parameters
-TOP_CAMERA_URL = "rtsp://Admin:rtf123@192.168.2.251:554/1"
+TOP_CAMERA_URL = "rtsp://Admin:rtf123@192.168.2.250:554/1"
 TOP_CAMERA_NEURAL_MODEL = 'detecting_objects-ygnzn/1'
 TOP_CAMERA_API_KEY = "d6bnjs5HORwCF1APwuBX"
 
@@ -76,6 +76,7 @@ class Robot:
         # right top
         if y < 150: # Magic number Approx half of the image
             angle = (180 + angle) % 360
+        # x, y, _ = self.map.frame_to_map_position(Position(x, y))
 
         self.move = Move(s, x, y, angle)
 
@@ -171,20 +172,22 @@ class Robot:
             self.move.go_sm(min((y_new - 150) // 10, y_new // 20), False)
 
     def move_along_path(self, game_object: GameObjectType):
+
         path = self.map.find_path_to(self.move.get_position(), game_object)
         while len(path) > 0:
             self.move.move_to_point(*path[0])
             time.sleep(1)
             self.map.find_all_game_objects()
-            map_robot = self.map.get_our_robot()
-            if time.time() - map_robot.last_seen < 0.3:
-                self.move.update_state(*map_robot.position)
-            path = self.map.find_path_to(self.move.get_position(), game_object)
+            # map_robot = self.map.get_our_robot()
+            # if time.time() - map_robot.last_seen < 0.3:
+            #     self.move.update_state(*map_robot.position)
+            # path = self.map.find_path_to(self.move.get_position(), game_object)
+            path = path[1:]
 
 
 
 if __name__ == '__main__':
-    host = "192.168.101.143"
+    host = "192.168.2.106"
     port = 2055
 
     # Создаем сокет
@@ -194,7 +197,7 @@ if __name__ == '__main__':
     # Устанавливаем соединение
     s.connect((host, port))
 
-    robot = Robot(s, is_left=True, color="green")
+    robot = Robot(s, is_left=True, color="red")
     robot.map.find_all_game_objects()
     print(robot.map.get_our_robot())
     for _ in range(2):

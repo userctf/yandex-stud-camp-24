@@ -22,7 +22,7 @@ VIRTUAL_HEIGHT = 320
 VIRTUAL_WIDTH = 400
 
 LIGHT_THRESHOLD = 220
-MIN_AREA_THRESHOLD = 100
+MIN_AREA_THRESHOLD = 80
 GAME_OBJECTS_TEMPLATE = {
     GameObjectType.CUBE: [],
     GameObjectType.BALL: [],
@@ -80,11 +80,12 @@ class GameMap:
         self.find_all_game_objects()
         
         start_point = robot_position # TODO: center or other point of robot???
+        print(start_point)
 
         if len(self.game_objects[game_object_type]) == 0:
             raise ValueError
 
-        best_point = Position(1000, 1000)
+        best_point = Position(10000, 10000)
 
         for i in range(len(self.game_objects[game_object_type])):
             end_points = self.game_objects[game_object_type][i].get_approach_points() # TODO: find [0] or the closest one?
@@ -92,7 +93,7 @@ class GameMap:
             end_point = min(end_points, key=lambda x: x.dist(start_point))
             if start_point.dist(end_point) < start_point.dist(best_point):
                 best_point = end_point
-
+        print(best_point)
         path: List[Tuple[int, int]] = self.a_star.search_closest_path(start_point, best_point)
         print(path)
         x_out_path = []
@@ -183,7 +184,7 @@ class GameMap:
         print("Frame borders are:", w, h)
         self.limits = [w, h]
 
-    def _frame_to_map_position(self, position: Position) -> Position:
+    def frame_to_map_position(self, position: Position) -> Position:
         # Using limits from _set_frame_limits. Can't be made static
         position.x = int(position.x / self.limits[0] * VIRTUAL_WIDTH + 0.5)
         position.y = int(position.y / self.limits[1] * VIRTUAL_HEIGHT + 0.5)
@@ -227,9 +228,9 @@ class GameMap:
 
         width = width // 3 * 2
         height = height // 3 * 2
-        green_position = self._frame_to_map_position(Position(x, y))
-        red_position = self._frame_to_map_position(Position(red_x, red_y))
-        conv_width, conv_height, _ = self._frame_to_map_position(Position(width, height))
+        green_position = self.frame_to_map_position(Position(x, y))
+        red_position = self.frame_to_map_position(Position(red_x, red_y))
+        conv_width, conv_height, _ = self.frame_to_map_position(Position(width, height))
 
         self.game_objects[GameObjectType.GREEN_BASE] = [
             Base(green_position, (conv_width, conv_height), GameObjectType.GREEN_BASE)]
@@ -284,7 +285,7 @@ class GameMap:
                 is_our, position = self._get_robot_position(frame, predict)
                 robot_type = GameObjectType.OUR_ROBOT if is_our else GameObjectType.BAD_ROBOT
                 new_game_objects[robot_type] = [GameObject(
-                    self._frame_to_map_position(position),
+                    self.frame_to_map_position(position),
                     predict.get_size(),
                     robot_type,
                 )]
@@ -292,7 +293,7 @@ class GameMap:
                 print(new_game_objects[GameObjectType.BAD_ROBOT])
             elif predict.object_type == ObjectType.CUBE:
                 new_game_objects[GameObjectType.CUBE].append(
-                    Cube(self._frame_to_map_position(Position(*np.int32(predict.center))),
+                    Cube(self.frame_to_map_position(Position(*np.int32(predict.center))),
                                predict.get_size(),
                                GameObjectType.CUBE)
                 )

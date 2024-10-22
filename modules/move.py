@@ -3,6 +3,8 @@ import socket
 import math
 import numpy as np
 from scipy.interpolate import interp1d
+
+from ml.robot_projection import HEIGHT
 from module import BaseModule
 from enum import Enum
 from utils.position import Position
@@ -184,11 +186,11 @@ class Move(BaseModule):
         if stop_before_target:
             dist = dist // 2
 
-        # print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
-        # print(f'Направляюсь в ({x_dest}, {y_dest})')
-        # print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
-        # print(f'И проехать на {dist} см')
-        # print()
+        print(f'Сейчас я в ({self.__x_cord}, {self.__y_cord})')
+        print(f'Направляюсь в ({x_dest}, {y_dest})')
+        print(f'Хочу повернуться на {new_angle - self.__angle} градусов')
+        print(f'И проехать на {dist} см')
+        print()
         # time.sleep(2)
 
         # turn to the destination
@@ -212,4 +214,4 @@ class Move(BaseModule):
             self.__angle = 180 - angle
 
     def get_position(self) -> Position:
-        return Position(self.__x_cord, self.__y_cord, self.__angle)
+        return Position(self.__x_cord, IMAGE_HEIGHT - self.__y_cord, self.__angle)
