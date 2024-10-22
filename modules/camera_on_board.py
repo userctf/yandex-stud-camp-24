@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     # Устанавливаем соединение
     s.connect((host, port))
-    S = CameraOnBoard("http://192.168.2.106:8080/?action=stream", NEURAL_MODEL, "uGu8WU7fJgR8qflCGaqP")
+    S = CameraOnBoard("http://192.168.101.143:8080/?action=stream", NEURAL_MODEL, "uGu8WU7fJgR8qflCGaqP")
     S.test_cob(s.dup())
     
     s.close()

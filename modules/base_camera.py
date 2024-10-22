@@ -81,9 +81,10 @@ class BaseCamera:
         self.frame = None
         self.stopped = False
         self.lock = threading.Lock()
-        threading.Thread(target=self.__camera_reader, args=()).start()
-        sleep(1)  # Probably it is useless and can be removed
-        print("[INFO] video capturing started")
+        if self.cap is not None:
+            threading.Thread(target=self.__camera_reader, args=()).start()
+            sleep(1)  # Probably it is useless and can be removed
+            print("[INFO] video capturing started")
 
     def __camera_reader(
             self):  # TODO: also apply model [model.infer] in this thread just after reading the image so it won't bottleneck the main thread
@@ -97,7 +98,8 @@ class BaseCamera:
 
     def __stop(self):
         self.stopped = True
-        self.cap.release()
+        if self.cap:
+            self.cap.release()
 
     def read(self):
         with self.lock:
@@ -129,6 +131,7 @@ class BaseCamera:
         return sorted(correct_objects, key=lambda pred: pred.confidence, reverse=True)
 
     def predict(self, frame: numpy.ndarray) -> List[Prediction]:
+        print("Here Predict Func")
         results = self.model.infer(frame, confidence=self.CONFIDENCE)[0]
         return [Prediction(pred) for pred in results.predictions]
 
@@ -151,5 +154,5 @@ class BaseCamera:
 
 
 if __name__ == "__main__":
-    BC = BaseCamera("http://192.168.2.106:8080/?action=stream", "robot_camera_detector/1", "uGu8WU7fJgR8qflCGaqP")
+    BC = BaseCamera("http://192.168.101.143:8080/?action=stream", "robot_camera_detector/1", "uGu8WU7fJgR8qflCGaqP")
     BC.test()

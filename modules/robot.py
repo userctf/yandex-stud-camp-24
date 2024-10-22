@@ -5,17 +5,20 @@ from typing import List, Tuple
 import cv2
 
 from arm import Arm
+from camera_mock import CameraMock
+from utils.position import Position
 from move import Move
 from enum import Enum
 from camera_on_board import CameraOnBoard
 from utils.enums import ObjectType, GameObjectType
+from utils.gameobject import GameObject
 from game_map import GameMap
 from top_camera import TopCamera
 from sensors import Sensors
 
 
 # Camera on board parameters
-ON_BOARD_CAMERA_URL = "http://192.168.2.106:8080/?action=stream"
+ON_BOARD_CAMERA_URL = "http://192.168.101.143:8080/?action=stream"
 ON_BOARD_NEURAL_MODEL = "robot_camera_detector/1"
 ON_BOARD_API_KEY = "uGu8WU7fJgR8qflCGaqP"
 # Top board_camera parameters
@@ -61,12 +64,23 @@ game_tasks = {
 class Robot:
     def __init__(self, s: socket.socket, is_left: bool = True, color: str = "red"):
         self.arm = Arm(s)
-        self.move = Move(s)
-        self.top_camera = TopCamera(TOP_CAMERA_URL, TOP_CAMERA_NEURAL_MODEL, TOP_CAMERA_API_KEY)
+        
+        self.top_camera = CameraMock(TOP_CAMERA_URL, TOP_CAMERA_NEURAL_MODEL, TOP_CAMERA_API_KEY)
         self.map = GameMap(self.top_camera, is_left=is_left, color=color)
         self.board_camera = CameraOnBoard(ON_BOARD_CAMERA_URL, ON_BOARD_NEURAL_MODEL, ON_BOARD_API_KEY)
-        # Need to add sensors
 
+        x = self.map.get_our_robot().get_center().x
+        y = self.map.get_our_robot().get_center().y
+        # left bottom
+        angle = self.map.get_our_robot().get_center().angle
+        # right top
+        if y < 150: # Magic number Approx half of the image
+            angle = (180 + angle) % 360
+
+        self.move = Move(s, x, y, angle)
+
+        # Need to add sensors
+    
     def __get_angle_to_object(self, x_obj: int, y_obj: int) -> int:
         x_center = 35
         y_center = -140
@@ -147,22 +161,30 @@ class Robot:
 
             if y_new <= 160:
                 if x_new <= 30:
-                    self.move.go_sm((y_new - 90) // 10)
+                    self.move.go_sm((y_new - 90) // 10, False)
                     self.arm.release()
                     return True
                 else:
                     angle = self.__get_angle_to_object(x_new, y_new)
                     self.move.turn_deg(angle)
 
-            self.move.go_sm(min((y_new - 150) // 10, y_new // 20))
+            self.move.go_sm(min((y_new - 150) // 10, y_new // 20), False)
 
     def move_along_path(self, game_object: GameObjectType):
         path = self.map.find_path_to(game_object)
-        self.move.move_along_path(path, stop_before_target=True)
+        for x, y in path:
+            self.move.move_to_point(x, y, stop_before_target=((x, y) == path[-1]))
+            time.sleep(1)
+            # self.map.find_all_game_objects()
+            # map_robot = self.map.get_our_robot()
+            # if time.time() - map_robot.last_seen < 0.3:
+            #     self.move.update_state(*map_robot.position)
+            # path = self.map.find_path_to(game_object)
+
 
 
 if __name__ == '__main__':
-    host = "192.168.2.106"
+    host = "192.168.101.143"
     port = 2055
 
     # Создаем сокет
@@ -172,11 +194,17 @@ if __name__ == '__main__':
     # Устанавливаем соединение
     s.connect((host, port))
 
-    robot = Robot(s, is_left=False, color="red")
+    robot = Robot(s, is_left=True, color="green")
     robot.map.find_all_game_objects()
-    print(robot.map.get_our_robot_position())
-    robot.move.update_state(*(robot.map.get_our_robot_position().position))
+    print("Дошли до куба")
+    print(robot.map.get_our_robot())
+    robot.move.update_state(*(robot.map.get_our_robot().position))
+    print("Started moving along path...............")
     robot.move_along_path(GameObjectType.CUBE)
+    print("Just ended moving along path...............")
+    print("Дошли до куба")
     robot.find_and_grab_object(ObjectType.CUBE)
-    robot.move_along_path(GameObjectType.GREEN_BASE)
+    print("Vzyali")
+    robot.move_along_path(GameObjectType.RED_BASE)
+
     robot.throw_in_basket()

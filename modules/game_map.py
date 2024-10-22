@@ -6,8 +6,7 @@ from typing import List, Tuple
 from copy import deepcopy
 from base_camera import Prediction
 
-from top_camera import TopCamera
-
+from camera_mock import CameraMock
 from utils.enums import GameObjectType, GameStartState, ObjectType
 from utils.position import Position
 from utils.gameobject import GameObject, Base
@@ -42,10 +41,18 @@ GAME_STATE_TEMPLATE = {
     GameObjectType.BTN_GREEN_ORANGE: GameStartState.UNKNOWN,
 }
 
+
 class GameMap:
-    def __init__(self, top_camera: TopCamera, is_left: bool = True, color: str = "red",):
-        self.top_camera = top_camera
-        self.game_objects = deepcopy(GAME_OBJECTS_TEMPLATE)
+    def __init__(
+        self,
+        camera_mock: CameraMock,
+        is_left: bool = True,
+        color: str = "red",
+    ):
+        self.camera_mock = camera_mock
+        self.game_objects: dict[GameObjectType, List[GameObject]] = deepcopy(
+            GAME_OBJECTS_TEMPLATE
+        )
         self.inner_boards = GameStartState.UNKNOWN
         self.outer_boards = GameStartState.UNKNOWN
         self.state = deepcopy(GAME_STATE_TEMPLATE)
@@ -55,9 +62,13 @@ class GameMap:
         self._set_frame_limits()
 
         self.set_up_field()
+
+        self.astar: a_star.AStarSearcher = GameMap._init_star(
+            self.inner_boards, self.outer_boards
+        )
         
-        self.a_star : a_star.AStarSearcher = GameMap._init_star(self.inner_boards, self.outer_boards)
-        
+        self.find_all_game_objects()
+
     @staticmethod
     def _init_star(inner_boards, outer_boards) -> a_star.AStarSearcher:
         walls: List[Tuple[int, int]] = a_star.gen_default_walls()
@@ -65,8 +76,8 @@ class GameMap:
             walls += a_star.gen_up_down_inner_walls()
         elif inner_boards == GameStartState.VERTICAL:
             walls += a_star.gen_left_right_inner_walls()
-            
-        if  outer_boards == GameStartState.HORIZONTAL:
+
+        if outer_boards == GameStartState.HORIZONTAL:
             walls += a_star.gen_up_down_outer_walls()
         elif outer_boards == GameStartState.VERTICAL:
             walls += a_star.gen_left_right_outer_walls()
@@ -74,9 +85,20 @@ class GameMap:
 
     def find_path_to(self, gameobject: GameObjectType) -> List[Tuple[int, int]]:
         self.find_all_game_objects()
-        start_point = self.get_our_robot_position().get_center() # TODO: center or other point of robot???
-        end_point = self.game_objects[gameobject][0].position # TODO: find [0] or the closest one?
-        path: List[Tuple[int, int]] = self.a_star.search_closest_path(start_point, end_point)
+        try:
+            start_point = (
+                self.game_objects[GameObjectType.OUR_ROBOT][0].get_center()
+            )  # TODO: center or other point of robot???
+        except Exception as e:
+            start_point: Position = Position(10, 10)
+            
+        end_point = self.game_objects[gameobject][
+            0
+        ].position  # TODO: find [0] or the closest one?
+        print(f'start point: {start_point}, end_point: {end_point}')
+        path: List[Tuple[int, int]] = self.astar.search_closest_path(
+            start_point, end_point
+        )
         print(path)
         x_out_path = []
         y_out_path = []
@@ -86,15 +108,18 @@ class GameMap:
         result = list(zip(x_out_path, y_out_path))
         print(result)
         return result
-      
     @staticmethod
-    def _crop_to_robot(image: np.ndarray, robot: Prediction) -> Tuple[np.ndarray, Position]:
+    def _crop_to_robot(
+        image: np.ndarray, robot: Prediction
+    ) -> Tuple[np.ndarray, Position]:
         top, bottom = robot.get_coords()
-        cropped = image[top[1]:bottom[1], top[0]:bottom[0]]
+        cropped = image[top[1] : bottom[1], top[0] : bottom[0]]
         return cropped, Position(top[0], top[1])
 
     @staticmethod
-    def _find_robot_color_and_position(cropped_frame: np.ndarray, color: str) -> Tuple[bool, Position]:
+    def _find_robot_color_and_position(
+        cropped_frame: np.ndarray, color: str
+    ) -> Tuple[bool, Position]:
         height, width, _ = cropped_frame.shape
 
         center_region_size = 0.5
@@ -108,7 +133,9 @@ class GameMap:
         center = cropped_frame[center_y_start:center_y_end, center_x_start:center_x_end]
 
         gray_image = cv2.cvtColor(center, cv2.COLOR_BGR2GRAY)
-        _, bright_mask = cv2.threshold(gray_image, LIGHT_THRESHOLD, 255, cv2.THRESH_BINARY)
+        _, bright_mask = cv2.threshold(
+            gray_image, LIGHT_THRESHOLD, 255, cv2.THRESH_BINARY
+        )
         bright_pixels = cv2.bitwise_and(center, center, mask=bright_mask)
 
         non_black_pixels = bright_pixels[np.any(bright_pixels != [0, 0, 0], axis=-1)]
@@ -127,9 +154,13 @@ class GameMap:
 
     @staticmethod
     def _find_angle(bright_mask: np.array) -> Position:
-        contours, _ = cv2.findContours(bright_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(
+            bright_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
 
-        min_area = MIN_AREA_THRESHOLD  # Минимальная площадь облака, которое будем учитывать
+        min_area = (
+            MIN_AREA_THRESHOLD  # Минимальная площадь облака, которое будем учитывать
+        )
 
         filtered_contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_area]
 
@@ -156,13 +187,10 @@ class GameMap:
 
     def _set_frame_limits(self):
         # вызывается при инициализации. Нужен для перевода в координаты и обратно
-        frame = self.top_camera.get_photo()
-        # cv2.imshow("1ebala", frame)
-        # cv2.waitKey(0)
-        # frame = cv2.imread("img.png")
-        frame = self.top_camera.fix_eye(frame, self.is_left)
+        frame = self.camera_mock.get_photo()
+        frame = self.camera_mock.fix_eye(frame, self.is_left)
 
-        _, w, h = self.top_camera.get_game_arena(frame)
+        _, w, h = self.camera_mock.get_game_arena(frame)
         self.limits = [w, h]
 
     def _frame_to_map_position(self, position: Position) -> Position:
@@ -171,9 +199,13 @@ class GameMap:
         position.y = int(position.y / self.limits[1] * VIRTUAL_HEIGHT + 0.5)
         return position
 
-    def _get_robot_position(self, frame: np.ndarray, prediction: Prediction) -> Tuple[bool, Position]:
+    def _get_robot_position(
+        self, frame: np.ndarray, prediction: Prediction
+    ) -> Tuple[bool, Position]:
         cropped_frame, crop_position = GameMap._crop_to_robot(frame, prediction)
-        is_our, robot_position = GameMap._find_robot_color_and_position(cropped_frame, self.color)
+        is_our, robot_position = GameMap._find_robot_color_and_position(
+            cropped_frame, self.color
+        )
         return is_our, robot_position + crop_position
 
     def _set_base_positions(self, base_prediction: Prediction):
@@ -200,7 +232,6 @@ class GameMap:
             self.state[GameObjectType.BTN_GREEN_ORANGE] = GameStartState.HORIZONTAL
             self.state[GameObjectType.BTN_PINK_BLUE] = GameStartState.HORIZONTAL
 
-
             red_y = y
             if x > 600:
                 red_x = width // 3
@@ -211,29 +242,41 @@ class GameMap:
         height = height // 3 * 2
         green_position = self._frame_to_map_position(Position(x, y))
         red_position = self._frame_to_map_position(Position(red_x, red_y))
-        conv_width, conv_height, _ = self._frame_to_map_position(Position(width, height))
+        conv_width, conv_height, _ = self._frame_to_map_position(
+            Position(width, height)
+        )
 
         self.game_objects[GameObjectType.GREEN_BASE] = [
-            Base(green_position, (conv_width, conv_height), GameObjectType.GREEN_BASE)]
+            Base(green_position, (conv_width, conv_height), GameObjectType.GREEN_BASE)
+        ]
         self.game_objects[GameObjectType.RED_BASE] = [
-            Base(red_position, (conv_width, conv_height), GameObjectType.RED_BASE)]
+            Base(red_position, (conv_width, conv_height), GameObjectType.RED_BASE)
+        ]
 
-    def get_our_robot_position(self) -> GameObject:
+    def get_our_robot(self) -> GameObject:
         return self.game_objects[GameObjectType.OUR_ROBOT][0]
 
     def set_up_field(self):
         start_time = time.time()
         while time.time() - start_time < 2:
-            frame = self.top_camera.get_photo()
+            frame = self.camera_mock.get_photo()
+            cv2.imshow("ebala", frame)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
             # frame = cv2.imread("img.png")
-            frame = self.top_camera.fix_eye(frame, self.is_left)
-            frame, w, h = self.top_camera.get_game_arena(frame)
+            frame = self.camera_mock.fix_eye(frame, self.is_left)
+            cv2.imshow("ebala", frame)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            frame, w, h = self.camera_mock.get_game_arena(frame)
 
-            # cv2.imshow("ebala", frame)
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows()
+            cv2.imshow("ebala", frame)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
-            predicts = sorted(self.top_camera.predict(frame), key=lambda p: p.object_type)
+            predicts = sorted(
+                self.camera_mock.predict(frame), key=lambda p: p.object_type
+            )
             print(predicts)
 
             for predict in predicts:
@@ -245,36 +288,79 @@ class GameMap:
                     print(self.game_objects[GameObjectType.RED_BASE])
             break
 
-
     def find_all_game_objects(self):
         # инициализация. Работает пока не заполним 2 куба, обоих роботов, обе базы, обе кнопки
-        frame = self.top_camera.get_photo()
+        frame = self.camera_mock.get_photo()
         # frame = cv2.imread("img.png")
-        frame = self.top_camera.fix_eye(frame, self.is_left)
+        frame = self.camera_mock.fix_eye(frame, self.is_left)
 
-        frame, w, h = self.top_camera.get_game_arena(frame)
+        frame, w, h = self.camera_mock.get_game_arena(frame)
 
-        predicts = self.top_camera.predict(frame)
+        predicts = self.camera_mock.predict(frame)
         print(predicts)
 
         new_game_objects = deepcopy(GAME_OBJECTS_TEMPLATE)
-
+        pos_to_tuple = lambda pos: (pos.x, pos.y)
         for predict in predicts:
             if predict.object_type is ObjectType.ROBOT:
                 is_our, position = self._get_robot_position(frame, predict)
-                robot_type = GameObjectType.OUR_ROBOT if is_our else GameObjectType.BAD_ROBOT
-                new_game_objects[robot_type] = [GameObject(
-                    self._frame_to_map_position(position),
-                    predict.get_size(),
-                    robot_type,
-                )]
+                robot_type = (
+                    GameObjectType.OUR_ROBOT if is_our else GameObjectType.BAD_ROBOT
+                )
+                new_game_objects[robot_type] = [
+                    GameObject(
+                        self._frame_to_map_position(position),
+                        pos_to_tuple(
+                            self._frame_to_map_position(
+                                Position(*np.int32(predict.get_size()))
+                            )
+                        ),
+                        robot_type,
+                    )
+                ]
                 print(new_game_objects[GameObjectType.OUR_ROBOT])
                 print(new_game_objects[GameObjectType.BAD_ROBOT])
             elif predict.object_type == ObjectType.CUBE:
                 new_game_objects[GameObjectType.CUBE].append(
-                    GameObject(self._frame_to_map_position(Position(*np.int32(predict.center))),
-                               predict.get_size(),
-                               GameObjectType.CUBE)
+                    GameObject(
+                        self._frame_to_map_position(
+                            Position(*np.int32(predict.center))
+                        ),
+                        pos_to_tuple(
+                            self._frame_to_map_position(
+                                Position(*np.int32(predict.get_size()))
+                            )
+                        ),
+                        GameObjectType.CUBE,
+                    )
+                )
+            elif predict.object_type == ObjectType.BTN_G_O:
+                new_game_objects[GameObjectType.BTN_GREEN_ORANGE].append(
+                    GameObject(
+                        self._frame_to_map_position(
+                            Position(*np.int32(predict.center))
+                        ),
+                        pos_to_tuple(
+                            self._frame_to_map_position(
+                                Position(*np.int32(predict.get_size()))
+                            )
+                        ),
+                        GameObjectType.BTN_GREEN_ORANGE,
+                    )
+                )
+            elif predict.object_type == ObjectType.BTN_P_B:
+                new_game_objects[GameObjectType.BTN_GREEN_ORANGE].append(
+                    GameObject(
+                        self._frame_to_map_position(
+                            Position(*np.int32(predict.center))
+                        ),
+                        pos_to_tuple(
+                            self._frame_to_map_position(
+                                Position(*np.int32(predict.get_size()))
+                            )
+                        ),
+                        GameObjectType.BTN_PINK_BLUE,
+                    )
                 )
         for key in self.game_objects.keys():
             if key == GameObjectType.GREEN_BASE:
@@ -285,14 +371,31 @@ class GameMap:
                 if len(new_game_objects[key]) == 0:
                     continue
                 self.game_objects[key] = new_game_objects[key].copy()
+            elif key == GameObjectType.BTN_GREEN_ORANGE:
+                self.game_objects[key] = new_game_objects[key].copy()
+                obstacles = []
+                for item in self.game_objects[key]:
+                    center = item.get_center()
+                    h = item.h
+                    w = item.w
+                    lower_left = (center.x - w // 2, center.y - h // 2)
+                    upper_right = (center.x + w // 2, center.y + h // 2)
+                    obstacles += a_star.gen_obstacles(lower_left, upper_right)
+                self.astar.add_obstacles_by_tuples(obstacles)
+            elif key == GameObjectType.BTN_PINK_BLUE:
+                self.game_objects[key] = new_game_objects[key].copy()
 
         # self.game_objects = new_game_objects
 
 
 if __name__ == "__main__":
-    camera = TopCamera("rtsp://Admin:rtf123@192.168.2.250:554/1", 'detecting_objects-ygnzn/1',
-                       api_key="d6bnjs5HORwCF1APwuBX")
-    game_map = GameMap(camera)
-    game_map.set_up_field()
+    camera = CameraMock(
+        "rtsp://Admin:rtf123@192.168.2.250:554/1",
+        "detecting_objects-ygnzn/1",
+        api_key="d6bnjs5HORwCF1APwuBX",
+    )
+    game_map = GameMap(camera, is_left=True, color="green")
+    path = game_map.find_path_to(GameObjectType.CUBE)
+    print(f"[INFO]: found path to cube: f{path}")
     camera.stopped = True
     cv2.destroyAllWindows()

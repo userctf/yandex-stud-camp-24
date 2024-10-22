@@ -60,7 +60,7 @@ print(f"Соединение с {host}:{port}")
 # Устанавливаем соединение
 s.connect((host, port))
 robot_arm = Arm(s)
-robot_sensor = ISensors(s, "http://192.168.2.106:8080/?action=stream", None, "uGu8WU7fJgR8qflCGaqP")
+robot_sensor = ISensors(s, "http://192.168.101.143:8080/?action=stream", None, "uGu8WU7fJgR8qflCGaqP")
 robot_move = Move(s)
 
 move_to_object(robot_move, robot_sensor, robot_arm)

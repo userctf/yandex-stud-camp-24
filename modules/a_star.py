@@ -48,25 +48,14 @@ class Node:
             + str(self.path)
         )
 
-
-def _transform_path(x_path, y_path):
-    new_path = np.array(list(zip(x_path, y_path))).astype(np.float32)
-    path_len = cv2.arcLength(new_path, False)
-    epsilon = 0.025 * path_len  # TODO: подобрать epsilon!!!!
-                                # Больше epsilon => ровнее путь, но может начать задевать[проходить через] стены
-                                # Меньше epsilon => в ломаной пути больше вершин, но точно далеко от стен
-    approx = cv2.approxPolyDP(new_path, epsilon, False)
-    return approx
-
-
 class AStarSearcher:
     def __init__(self, obstacles: List[Tuple[int, int]]):
         self.HEIGHT = 321
         self.WIDTH = 401
-        self.GRID_SIZE = 10.0    # TODO: fine-tune so robot does no hits walls!
-        self.ROBOT_RADIUS = 20.0 # TODO: fine-tune so robot does no hits walls!
+        self.GRID_SIZE = 10.0  # TODO: fine-tune so robot does no hits walls!
+        self.ROBOT_RADIUS = 15.0  # TODO: fine-tune so robot does no hits walls!
 
-        self._show_animation = False
+        self._show_animation = True
         x_obstacle = [x for x, _ in obstacles]
         y_obstacle = [y for _, y in obstacles]
         self._path = self.__get_path()
@@ -77,6 +66,20 @@ class AStarSearcher:
             [False for i in range(self._y_width)] for i in range(self._x_width)
         ]
         self.__create_obstacle_map(x_obstacle, y_obstacle)
+
+    
+    def _transform_path(self, x_path, y_path):
+        # y_new_path = []
+        # for item in y_path:
+        #     y_new_path.append(item)
+        # y_path = y_new_path
+        new_path = np.array(list(zip(x_path, y_path))).astype(np.float32)
+        path_len = cv2.arcLength(new_path, False)
+        epsilon = 0.025 * path_len  # TODO: подобрать epsilon!!!!
+        # Больше epsilon => ровнее путь, но может начать задевать[проходить через] стены
+        # Меньше epsilon => в ломаной пути больше вершин, но точно далеко от стен
+        approx = cv2.approxPolyDP(new_path, epsilon, False)
+        return approx
 
     @staticmethod
     def __calc_heuristic(num1, num2):
@@ -108,6 +111,14 @@ class AStarSearcher:
             return False
         return True
 
+    def add_obstacles_by_tuples(self, obstacles: List[Tuple[int, int]]):
+        x_obstacle: List[int] = []
+        y_obstacle: List[int] = []
+        for obstacle in obstacles:
+            x_obstacle.append(obstacle[0])
+            y_obstacle.append(obstacle[1])
+        self.__create_obstacle_map(x_obstacle, y_obstacle)
+
     def add_obstacles(self, obstacles: List[Position]):
         x_obstacle: List[int] = []
         y_obstacle: List[int] = []
@@ -134,7 +145,7 @@ class AStarSearcher:
                     if d <= self.ROBOT_RADIUS:
                         self.obstacle_pos[idx_x][idx_y] = True
         if self._show_animation:
-            plt.plot(x_obstacle, y_obstacle, ".k")
+            plt.plot(x_obstacle, list(map(lambda y: y, y_obstacle)), ".k")
             plt.grid(True)
             plt.axis("equal")
 
@@ -158,12 +169,15 @@ class AStarSearcher:
             self.__calc_grid_position(end_node.y, 0)
         ]
         path = end_node.path
+        print("calc final path")
+        
         while path != -1:
+            print(path)
             prev_node = record_closed[self.__calc_grid_idx(path)]
             x_out_path.append(self.__calc_grid_position(prev_node.x, 0))
             y_out_path.append(self.__calc_grid_position(prev_node.y, 0))
             path = prev_node.path
-
+        print("ENDED claculating")
         return x_out_path, y_out_path
 
     # Returns a shortest path between 2 points. Contains `start` and `end` points as the first and the last vertexes of the pat
@@ -195,19 +209,25 @@ class AStarSearcher:
 
         while True:
             if len(state.elements) == 0:
-                print("[WARN] Astar could not find path, returning a path to the closest reachable point")
+                print(
+                    "[WARN] Astar could not find path, returning a path to the closest reachable point"
+                )
                 closest_node = None
                 for node in record_open.values():
-                    if closest_node  is None or self.__calc_heuristic(node, end_node) <= self.__calc_heuristic(closest_node, end_node):
+                    if closest_node is None or self.__calc_heuristic(
+                        node, end_node
+                    ) <= self.__calc_heuristic(closest_node, end_node):
                         closest_node = node
-                x_out_path, y_out_path = self.__calc_final_path(closest_node, record_closed)
-                approx_path = _transform_path(x_out_path, y_out_path)
+                x_out_path, y_out_path = self.__calc_final_path(
+                    closest_node, record_closed
+                )
+                approx_path = self._transform_path(x_out_path, y_out_path)
                 if self._show_animation:
                     x_out_path = []
                     y_out_path = []
                     for point in approx_path:
                         x_out_path.append(point[0][0])
-                        y_out_path.append(self.HEIGHT - point[0][1])
+                        y_out_path.append(point[0][1])
                     plt.plot(x_out_path, y_out_path, "r")
                     plt.show()
                 return approx_path[::-1]
@@ -222,7 +242,7 @@ class AStarSearcher:
                     "xy",
                 )
                 # if len(record_closed.keys()) % 10 == 0:
-                    # plt.pause(0.001)
+                # plt.pause(0.001)
 
             if closest_node.x == end_node.x and closest_node.y == end_node.y:
                 print("Astar Finished!")
@@ -261,27 +281,39 @@ class AStarSearcher:
                         record_open[idx_node] = next_node
                         state.put(next_node, next_node.cost)
 
+        print("here")
         x_out_path, y_out_path = self.__calc_final_path(end_node, record_closed)
-        approx_path = _transform_path(x_out_path, y_out_path)
-        if self._show_animation:
-            x_out_path = []
-            y_out_path = []
-            for point in approx_path:
-                x_out_path.append(point[0][0])
-                y_out_path.append(self.HEIGHT - point[0][1])
-            plt.plot(x_out_path, y_out_path, "r")
-            plt.show()
+        approx_path = self._transform_path(x_out_path, y_out_path)
+        # print("kjadflajsghdfl")
+        # approx_path_new = []
+        # print("len", len(approx_path), approx_path)
+        # for item in approx_path:
+        #     x, y = item[0][0], item[0][1]
+        #     print(x, y)
+        #     approx_path_new.append(x)
+        #     approx_path_new.append(self.HEIGHT - y)
+        # if self._show_animation:
+        #     x_out_path = []
+        #     y_out_path = []
+        #     for point in approx_path:
+        #         x_out_path.append(point[0][0])
+        #         y_out_path.append(point[0][1])
+        #     plt.plot(x_out_path, y_out_path, "r")
+        #     plt.show()
+        print("horrey")
         return approx_path[::-1]
 
 
-def gen_obstacles(lower_left: Tuple[int, int], upper_right: Tuple[int, int]) -> List[Tuple[int, int]]:
+def gen_obstacles(
+    lower_left: Tuple[int, int], upper_right: Tuple[int, int]
+) -> List[Tuple[int, int]]:
     obstacles = [(1, 1), (400, 320)]
     lower_left = list(lower_left)
     upper_right = list(upper_right)
     for i in range(2):
-        if(lower_left[i] >= upper_right[i]):
+        if lower_left[i] >= upper_right[i]:
             lower_left[i], upper_right[i] = upper_right[i], lower_left[i]
-            
+
     for x in range(lower_left[0], upper_right[0] + 1):
         for y in range(lower_left[1], upper_right[1] + 1):
             obstacles.append((x, y))
@@ -289,65 +321,74 @@ def gen_obstacles(lower_left: Tuple[int, int], upper_right: Tuple[int, int]) -> 
 
 
 def gen_end_of_world_walls():
-    LOWER_LEFT : List[Tuple[int, int]] = gen_obstacles((0,0), (5, 320))
-    
+    LOWER_LEFT: List[Tuple[int, int]] = gen_obstacles((0, 0), (5, 320))
+
     UPPER_LEFT: List[Tuple[int, int]] = gen_obstacles((0, 315), (400, 320))
-    
-    UPPER : List[Tuple[int, int]] = gen_obstacles((395, 0), (400, 320))
-    
-    BUTTOM : List[Tuple[int, int]] = gen_obstacles((0, 0), (400, 5))
-    
+
+    UPPER: List[Tuple[int, int]] = gen_obstacles((395, 0), (400, 320))
+
+    BUTTOM: List[Tuple[int, int]] = gen_obstacles((0, 0), (400, 5))
+
     return LOWER_LEFT + UPPER_LEFT + UPPER + BUTTOM
 
+
 def gen_column() -> List[Tuple[int, int]]:
-    LOWER_LEFT : List[Tuple[int, int]] = gen_obstacles((160, 120), (165, 125))
-    
+    LOWER_LEFT: List[Tuple[int, int]] = gen_obstacles((160, 120), (165, 125))
+
     UPPER_LEFT: List[Tuple[int, int]] = gen_obstacles((165, 195), (160, 200))
-    
-    UPPER_RIGHT : List[Tuple[int, int]] = gen_obstacles((235, 125), (240, 120))
-    
-    LOWER_RIGHT : List[Tuple[int, int]] = gen_obstacles((235, 195), (240, 200))
-    
+
+    UPPER_RIGHT: List[Tuple[int, int]] = gen_obstacles((235, 125), (240, 120))
+
+    LOWER_RIGHT: List[Tuple[int, int]] = gen_obstacles((235, 195), (240, 200))
+
     return LOWER_LEFT + UPPER_LEFT + LOWER_RIGHT + UPPER_RIGHT
 
 
 def gen_outer_walls() -> List[Tuple[int, int]]:
-    LOWER_LEFT : List[Tuple[int, int]] = gen_obstacles((105, 55), (110, 125)) + gen_obstacles((105, 55), (165, 60))
-    
-    UPPER_LEFT: List[Tuple[int, int]] = gen_obstacles((105, 195), (110, 265)) + gen_obstacles((105, 260), (165, 265))
-    
-    UPPER_RIGHT : List[Tuple[int, int]] = gen_obstacles((235, 260), (295, 265)) + gen_obstacles((290, 265), (295, 195))
-    
-    LOWER_RIGHT : List[Tuple[int, int]] = gen_obstacles((235, 55), (295, 60)) + gen_obstacles((290, 55), (295, 125))
-    
+    LOWER_LEFT: List[Tuple[int, int]] = gen_obstacles(
+        (105, 55), (110, 125)
+    ) + gen_obstacles((105, 55), (165, 60))
+
+    UPPER_LEFT: List[Tuple[int, int]] = gen_obstacles(
+        (105, 195), (110, 265)
+    ) + gen_obstacles((105, 260), (165, 265))
+
+    UPPER_RIGHT: List[Tuple[int, int]] = gen_obstacles(
+        (235, 260), (295, 265)
+    ) + gen_obstacles((290, 265), (295, 195))
+
+    LOWER_RIGHT: List[Tuple[int, int]] = gen_obstacles(
+        (235, 55), (295, 60)
+    ) + gen_obstacles((290, 55), (295, 125))
+
     return LOWER_LEFT + UPPER_LEFT + LOWER_RIGHT + UPPER_RIGHT
 
 
 def gen_left_right_inner_walls() -> List[Tuple[int, int]]:
     LEFT: List[Tuple[int, int]] = gen_obstacles((160, 125), (165, 200))
-    
-    RIGHT: List[Tuple[int, int]] = gen_obstacles((235, 125),(240, 195) )
-    
+
+    RIGHT: List[Tuple[int, int]] = gen_obstacles((235, 125), (240, 195))
+
     return LEFT + RIGHT
 
 
 def gen_up_down_inner_walls() -> List[Tuple[int, int]]:
     UP: List[Tuple[int, int]] = gen_obstacles((165, 125), (235, 120))
-    
-    DOWN: List[Tuple[int, int]] = gen_obstacles((165, 195),(235, 200) )
-    
-    return UP +DOWN
+
+    DOWN: List[Tuple[int, int]] = gen_obstacles((165, 195), (235, 200))
+
+    return UP + DOWN
 
 
 def gen_left_right_outer_walls():
-    LEFT : List[Tuple[int, int]] = gen_obstacles((105, 125), (110, 195))
+    LEFT: List[Tuple[int, int]] = gen_obstacles((105, 125), (110, 195))
     RIGHT: List[Tuple[int, int]] = gen_obstacles((290, 125), (295, 195))
     return LEFT + RIGHT
 
 
 def gen_up_down_outer_walls():
     UP: List[Tuple[int, int]] = gen_obstacles((165, 60), (235, 55))
-    
+
     DOWN: List[Tuple[int, int]] = gen_obstacles((165, 260), (235, 265))
 
     return UP + DOWN
@@ -361,23 +402,23 @@ def gen_default_walls():
     walls += gen_up_down_inner_walls()
     walls += gen_left_right_outer_walls()
     return walls
-    
+
 
 def gen_points() -> Tuple[Position, Position]:
     start = Position(50, 50)
-    end = Position(350,270)
+    end = Position(350, 270)
     return start, end
 
 
 def main():
     start, end = gen_points()
-        
+
     obstacles = gen_default_walls()
     a_star: AStarSearcher = AStarSearcher(obstacles)
-    
+
     path: List[Tuple[int, int]] = a_star.search_closest_path(start, end)
     print(path[0])
-    
+
     host = "192.168.2.106"
     port = 2055
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

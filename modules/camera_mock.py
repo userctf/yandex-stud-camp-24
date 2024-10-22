@@ -47,7 +47,9 @@ class CameraMock(BaseCamera):
 
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
         frame_morph = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, kernel, 1)
-
+        cv2.imshow("kek", frame_morph)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         edges = cv2.Canny(frame_morph, 0, 250)
         contours, hierarchy = cv2.findContours(
             edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
@@ -64,7 +66,7 @@ class CameraMock(BaseCamera):
         image = cv2.imread(imgs[self.last_image_index])
         # TODO: bad mock
         self.last_image_index = (self.last_image_index + 1) % len(imgs)
-        image = cv2.imread("imgs/2024-10-21 18-13-51.mov_20241021_223732.634.png")
+        image = cv2.imread("imgs/True.png")
         print("Getting image: ", image)
         return image
 
@@ -96,7 +98,7 @@ class CameraMock(BaseCamera):
     def __get_game_arena_min_box(
         frame: np.array,
     ) -> ((int, int), (int, int), int):  # center, size, angle
-        img = frame[0:1400, 0:1600]  # crop to remove extra data
+        img = frame[0:1600, 0:1400]  # crop to remove extra data, MAGIC NUMBER
         contours = CameraMock.get_all_contours(img)
         area_res = []
 
